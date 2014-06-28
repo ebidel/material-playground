@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>Polymer Material Design Playground</title>
+  <link rel="stylesheet" href="css/app.css" shim-shadowdom>
+  <script src="bower_components/platform/platform.js"></script>
+  <!-- <link rel="import" href="elements.html"> -->
+  <link rel="import" href="vulcanized.html">
+</head>
+<body class="purple-theme" unresolved>
+
+<core-header-panel mode="cover">
+
+<core-toolbar class="tall">
+  <paper-icon-button icon="menu"></paper-icon-button>
+  <span flex>Material Design Playground</span>
+  <paper-icon-button icon="search"></paper-icon-button>
+  <paper-icon-button icon="more-vert"></paper-icon-button>
+  <paper-fab icon="favorite"></paper-fab>
+</core-toolbar>
+
+<main>
+
+  <x-card z="1">
+    <img src="images/beach.jpg">
+    <h2>Welcome to Polymer's Material Design playground demo, a whirlwind tour of all the new component goodness. Enjoy!</h2>
+  </x-card>
+  <x-card z="1">
+    <h3 class="heading">Basic components</h3>
+    <div>
+      <p><paper-button label="Simple button"></paper-button><paper-button label="Raised button" raisedButton></paper-button></p>
+      <p>
+        <paper-checkbox label="A checkbox"></paper-checkbox>
+        <paper-toggle-button></paper-toggle-button>
+      </p>
+      <paper-radio-group selected="small">
+        <paper-radio-button name="small" label="A radio button" toggles></paper-radio-button><br>
+        <paper-radio-button name="medium" label="Another radio button" toggles></paper-radio-button>
+      </paper-radio-group>
+    </div>
+  </x-card>
+  <x-card z="1">
+    <h3 class="heading">Text fields and dialogs</h3>
+    <div>
+      <paper-input label="Type something..."></paper-input>
+      <paper-input floatingLabel label="Type only numbers... (floating)" validate="^[0-9]*$" error="Input is not a number!"></paper-input>
+      <paper-dialog heading="Heya" transition="paper-dialog-transition-center">
+        <p>Lorem ipsum dolor sit amet, doming noster at quo, nostrud lucilius rationibus ea duo. Vim no mucius dolores. No bonorum voluptatum vis, has iudicabit consectetuer ne. Nullam sensibus vim id, et quo graeci perpetua.</p>
+
+        <p>Id qui scripta laboramus dissentiet, verterem partiendo vim at. Stet dissentiet ut mei. Iriure facilis eloquentiam pro eu, nec an esse inciderint. In meliore abhorreant sea. Eros nostro ocurreret at nec. Cu per regione persecuti.</p>
+
+        <paper-button label="More Info..." dismissive></paper-button>
+        <paper-button label="Decline" affirmative core-overlay-toggle></paper-button>
+        <paper-button label="Accept" affirmative default core-overlay-toggle></paper-button>
+
+      </paper-dialog>
+      <paper-button label="Dialog" raisedButton
+                    onclick="toggleDialog('paper-dialog-transition-center')"></paper-button>
+    </div>
+  </x-card>
+  <x-card z="1">
+    <h3 class="heading">Progress and sliders</h3>
+    <div>
+      <p><paper-slider value="80"></paper-slider></p>
+      <p><paper-slider pin value="20"></paper-slider></p>
+      <p><paper-slider pin snaps max="10" step="1" value="5"></paper-slider></p>
+      <p><paper-slider value="25" max="100" editable></paper-slider></p>
+      <p><paper-progress value="80"></paper-progress></p>
+      <p><paper-progress class="red" value="40" secondaryProgress="80"></paper-progress></p>
+    </div>
+  </x-card>
+  <x-card z="1">
+    <h3 class="heading">Tabs</h3>
+    <div>
+      <paper-tabs selected="1" noink>
+        <paper-tab>ITEM ONE</paper-tab>
+        <paper-tab>ITEM TWO</paper-tab>
+        <paper-tab>ITEM THREE</paper-tab>
+      </paper-tabs>
+      <br>
+      <paper-tabs selected="0">
+        <paper-tab>ITEM ONE</paper-tab>
+        <paper-tab>ITEM TWO</paper-tab>
+        <paper-tab>ITEM THREE</paper-tab>
+      </paper-tabs>
+    </div>
+  </x-card>
+</main>
+
+<!--
+TODO: best way to change paper-shadow z on hover?
+-->
+<x-card id="hovercard" z="0" zHover="3">
+ <paper-icon-button icon="hardware:gamepad" fill></paper-icon-button>
+</x-card>
+
+<paper-toggle-button id="themetoggle" onclick="toggleTheme('purple-theme')"></paper-toggle-button>
+
+</core-header-panel>
+
+<script>
+  function toggleTheme(theme) {
+    var mode = 'standard';
+
+    if (document.body.classList.contains(theme)) {
+      mode = 'waterfall-tall';
+    } else {
+      mode = 'cover';
+      document.querySelector('core-toolbar').classList.add('tall');
+    }
+
+    document.body.classList.toggle(theme, !document.body.classList.contains(theme));
+
+    document.querySelector('core-header-panel').mode = mode;
+    document.querySelector('paper-fab').classList.toggle('mini');
+  }
+
+  function toggleDialog(transition) {
+    var dialog = document.querySelector('paper-dialog[transition=' + transition + ']');
+    dialog.toggle();
+  }
+</script>
+<script>
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+ (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+ m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+ })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+ ga('create', 'UA-43475701-1', 'ebidel.github.io');
+ ga('send', 'pageview');
+</script>
+</body>
+</html>
