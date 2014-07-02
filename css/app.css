@@ -32,10 +32,9 @@ polyfill-rule {
 }
 core-header-panel[mode="cover"]::shadow #mainContainer {
   width: 465px;
-  left: 45%;
+  left: 50%;
   margin-left: calc(-465px/2);
 }
-
 
 core-header-panel::shadow #mainContainer::-webkit-scrollbar { 
   display: none; 
@@ -62,7 +61,8 @@ main x-card {
 
 paper-fab {
   background-color: #e91e63;
-  position: absolute !important;
+  /*position: relative; */
+  position: absolute;
   bottom: -27px;
   right: 1em;
   z-index: 10;
@@ -240,4 +240,43 @@ paper-tabs {
   bottom: 3em;
   left: 0;
   z-index: 10;
+}
+
+@media all and (max-width: 400px) {   
+  core-header-panel[mode="cover"]::shadow #mainContainer {
+    left: 50%;
+    width: 275px;
+    margin-left: calc(-275px/2);
+  }
+  core-toolbar,
+  x-card h2 {
+    font-size: 5vw;
+  }
+  x-card img {
+    height: 150px !important;
+  }
+  .purple-theme core-toolbar.tall {
+    height: 100px;
+  }
+  core-toolbar > * {
+    margin: 0 !important;
+  }
+  core-toolbar [icon="search"] {
+    display: none;
+  }
+  #themetoggle {
+    margin-left: 15px;
+    bottom: 15px;
+  }
+  #hovercard {
+    display: none;
+  }
+  paper-fab.mini {
+    position: absolute;
+  }
+  paper-fab {
+    position: fixed;
+    bottom: 15px;
+    right: 15px;
+  }
 }

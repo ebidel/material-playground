@@ -43,6 +43,12 @@
         border-radius: 2px;
       }
 
+      @media all and (max-width: 400px) {
+        :host {
+          width: 275px;
+        }
+      }
+
       polymer-next-selector { content: ':host img'; }
       ::content img {
         object-fit: cover;
