@@ -1,110 +1,47 @@
-<link rel="import" href="bower_components/font-roboto/roboto.html">
-
-<!-- <link rel="import" href="bower_components/core-drawer-panel/core-drawer-panel.html"> -->
-<link rel="import" href="bower_components/core-header-panel/core-header-panel.html">
-
-<!-- <link rel="import" href="bower_components/paper-appbar/paper-appbar.html"> -->
-
-<link rel="import" href="bower_components/core-icons/core-icons.html">
-<link rel="import" href="bower_components/core-icons/iconsets/hardware-icons.html">
-<link rel="import" href="bower_components/core-toolbar/core-toolbar.html">
-
-<link rel="import" href="bower_components/paper-icon-button/paper-icon-button.html">
-<link rel="import" href="bower_components/paper-button/paper-button.html">
-<link rel="import" href="bower_components/paper-shadow/paper-shadow.html">
-<link rel="import" href="bower_components/paper-checkbox/paper-checkbox.html">
+<!-- <link rel="import" href="bower_components/iron-icon/iron-icon.html"> -->
+<link rel="import" href="bower_components/iron-icon/iron-icon.html">
+<link rel="import" href="bower_components/iron-icons/iron-icons.html">
 <link rel="import" href="bower_components/paper-fab/paper-fab.html">
+<link rel="import" href="bower_components/paper-tabs/paper-tabs.html">
+<link rel="import" href="bower_components/paper-tabs/paper-tab.html">
+<link rel="import" href="bower_components/iron-flex-layout/classes/iron-flex-layout.html">
+<link rel="import" href="bower_components/paper-toolbar/paper-toolbar.html">
+<link rel="import" href="bower_components/paper-button/paper-button.html">
+<link rel="import" href="bower_components/paper-icon-button/paper-icon-button.html">
+<link rel="import" href="bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
 
-<link rel="import" href="bower_components/paper-dialog/paper-dialog.html">
-<link rel="import" href="bower_components/paper-dialog/paper-dialog-transition.html">
+<link rel="import" href="bower_components/paper-spinner/paper-spinner.html">
+<link rel="import" href="bower_components/paper-progress/paper-progress.html">
+
+<link rel="import" href="bower_components/paper-checkbox/paper-checkbox.html">
+<link rel="import" href="bower_components/paper-input/paper-input.html">
+<link rel="import" href="bower_components/paper-input/paper-textarea.html">
+<link rel="import" href="bower_components/paper-slider/paper-slider.html">
+
+<link rel="import" href="bower_components/paper-material/paper-material.html">
 
 <link rel="import" href="bower_components/paper-radio-button/paper-radio-button.html">
 <link rel="import" href="bower_components/paper-radio-group/paper-radio-group.html">
+
 <link rel="import" href="bower_components/paper-toggle-button/paper-toggle-button.html">
-<link rel="import" href="bower_components/paper-input/paper-input.html">
 
-<link rel="import" href="bower_components/paper-slider/paper-slider.html">
-<link rel="import" href="bower_components/paper-progress/paper-progress.html">
+<link rel="import" href="bower_components/paper-toast/paper-toast.html">
 
-<link rel="import" href="bower_components/paper-tabs/paper-tabs.html">
+<link rel="import" href="bower_components/paper-menu/paper-menu.html">
+<link rel="import" href="bower_components/paper-item/paper-item.html">
 
+<link rel="import" href="bower_components/paper-styles/paper-styles.html">
 
-<!-- <link rel="import" href="bower_components/core-theme-aware/core-theme-aware.html"> -->
+<link rel="import" href="bower_components/paper-header-panel/paper-header-panel.html">
 
-<polymer-element name="x-card" attributes="zHover" on-mouseover="{{onMouseOver}}" on-mouseout="{{onMouseOut}}">
-  <template>
-    <style>
-      :host {
-        display: block;
-        background: white;
-        width: 400px;
-        height: auto;
-        position: relative;
-        border-radius: 2px;
-      }
+<link rel="import" href="bower_components/paper-dialog/paper-dialog.html">
 
-      @media all and (max-width: 400px) {
-        :host {
-          width: 275px;
-        }
-      }
+<link rel="import" href="bower_components/paper-tooltip/paper-tooltip.html">
+<link rel="import" href="bower_components/paper-badge/paper-badge.html">
 
-      polymer-next-selector { content: ':host img'; }
-      ::content img {
-        object-fit: cover;
-        /*object-position: 50% 100%;*/
-        width: 100%;
-        height: 250px;
-        border-radius: inherit;
-      }
+<!--
 
-      polymer-next-selector { content: ':host .heading'; }
-      ::content .heading {
-        margin-bottom: 35px;
-      }
+<link rel="import" href="bower_components/paper-dialog/paper-dialog.html">
+<link rel="import" href="bower_components/paper-drawer-panel/paper-drawer-panel.html">
 
-      #cardcontent {
-        padding: 25px;
-      }
-
-      paper-ripple {
-        position: absolute;
-        top: 0;
-        right: 0;
-        bottom: 0;
-        left: 0;
-        height: 250px;
-        color: white;
-      }
-    </style>
-    <content id="c" select="img"></content>
-    <div id="cardcontent"><content></content></div>
-    <template if="{{hasImage}}">
-      <paper-ripple class="recenteringTouch"></paper-ripple>
-    </template>
-    <paper-shadow target="{{}}" z="{{zReal}}" animated></paper-shadow> 
-  </template>
-  <script>
-    Polymer('x-card', {
-      zHover: null,
-      hasImage: false,
-      publish: {
-        z: {value: 1, reflect: true},
-      },
-      ready: function() {
-        this.zReal = this.z;
-        this.hasImage = this.$.c.getDistributedNodes().length;
-      },
-      onMouseOver: function(e, detail, sender) {
-        if (this.zHover != null) {
-          this.zReal = this.zHover;
-        }
-      },
-      onMouseOut: function(e, detail, sender) {
-        if (this.zHover != null) {
-          this.zReal = this.z;
-        }
-      }
-    });
-  </script>
-</polymer-element>
+ -->
