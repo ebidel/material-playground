@@ -1,137 +1,384 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <title>Polymer Material Design Playground</title>
-  <link rel="stylesheet" href="css/app.css" shim-shadowdom>
-  <script src="bower_components/platform/platform.js"></script>
-  <link rel="import" href="elements.html">
-  <!-- <link rel="import" href="vulcanized.html"> -->
+  <title>Polymer material design elements demos</title>
+  <script src="bower_components/webcomponentsjs/webcomponents-lite.min.js"></script>
+  <link rel="import" href="vulcanized.html">
+<style is="custom-style">
+html, body {
+  font-family: "Roboto";
+  margin: 0;
+  height: 100%;
+}
+h1 {
+  font-weight: 300;
+}
+paper-tabs {
+  background-color: #00bcd4;
+  color: #fff;
+  box-shadow: 0px 3px 6px rgba(0, 0, 0, 0.2);
+}
+paper-checkbox {
+  margin: 12px 0;
+}
+paper-toolbar {
+  color: #fff;
+  box-shadow: 0px 3px 6px rgba(0, 0, 0, 0.2);
+}
+paper-material {
+  width: 175px;
+  height: 175px;
+  margin-right: 24px;
+}
+
+paper-fab {
+  margin-right: 12px;
+}
+
+paper-fab.red {
+  color: white;
+  background-color: #f44336;
+}
+
+paper-fab.blue {
+  color: white;
+  background-color: #4285f4;
+}
+paper-fab.green {
+  color: white;
+  background-color: #0f9d58;
+}
+
+paper-textarea {
+  width: 100%;
+}
+
+paper-toggle-button.orange {
+  --paper-toggle-button-checked-bar-color:  var(--paper-orange-500);
+  --paper-toggle-button-checked-button-color:  var(--paper-orange-500);
+  --paper-toggle-button-checked-ink-color: var(--paper-orange-500);
+  --paper-toggle-button-unchecked-bar-color:  var(--paper-orange-900);
+  --paper-toggle-button-unchecked-button-color:  var(--paper-orange-900);
+  --paper-toggle-button-unchecked-ink-color: var(--paper-orange-900);
+}
+
+paper-toggle-button.blue {
+  --paper-toggle-button-checked-bar-color:  var(--paper-light-blue-500);
+  --paper-toggle-button-checked-button-color:  var(--paper-light-blue-500);
+  --paper-toggle-button-checked-ink-color: var(--paper-light-blue-500);
+  --paper-toggle-button-unchecked-bar-color:  var(--paper-light-blue-900);
+  --paper-toggle-button-unchecked-button-color:  var(--paper-light-blue-900);
+  --paper-toggle-button-unchecked-ink-color: var(--paper-light-blue-900);
+}
+
+paper-toggle-button.red {
+  --paper-toggle-button-checked-bar-color:  var(--paper-red-500);
+  --paper-toggle-button-checked-button-color:  var(--paper-red-500);
+  --paper-toggle-button-checked-ink-color: var(--paper-red-500);
+  --paper-toggle-button-unchecked-bar-color:  var(--paper-red-900);
+  --paper-toggle-button-unchecked-button-color:  var(--paper-red-900);
+  --paper-toggle-button-unchecked-ink-color: var(--paper-red-900);
+}
+
+paper-toggle-button.green {
+  --paper-toggle-button-checked-bar-color:  var(--paper-green-500);
+  --paper-toggle-button-checked-button-color:  var(--paper-green-500);
+  --paper-toggle-button-checked-ink-color: var(--paper-green-500);
+  --paper-toggle-button-unchecked-bar-color:  var(--paper-green-900);
+  --paper-toggle-button-unchecked-button-color:  var(--paper-green-900);
+  --paper-toggle-button-unchecked-ink-color: var(--paper-green-900);
+}
+
+paper-slider.blue {
+  --paper-slider-knob-color: var(--paper-light-blue-500);
+  --paper-slider-active-color: var(--paper-light-blue-500);
+}
+
+paper-slider.red {
+  --paper-slider-knob-color: var(--paper-red-500);
+  --paper-slider-active-color: var(--paper-red-500);
+}
+
+paper-slider.green {
+  --paper-slider-knob-color: var(--paper-green-500);
+  --paper-slider-active-color: var(--paper-green-500);
+}
+
+paper-radio-group,
+.width {
+  width: 125px;
+}
+
+paper-progress {
+  width: 30%;
+/*  margin-right: 12px;*/
+}
+
+/*.line {
+   margin-bottom: 20px;
+ }*/
+
+.line span {
+/*  margin-left: 12px;*/
+  margin-top: 10px;
+}
+    
+paper-menu {
+  width: 100px;
+}
+
+paper-toolbar {
+  background-color: var(--paper-pink-a200);
+}
+      
+paper-header-panel {
+  height: 100%;
+  @apply(--shadow-elevation-2dp);
+}
+
+paper-header-panel .cover {
+  margin: 120px 100px;
+}
+
+paper-header-panel .content {
+  @apply(--shadow-elevation-2dp);
+  background: white;
+/*  height: 100%;*/
+  padding: 24px;
+}
+  
+.paper-header {
+  padding: 30px;
+  color: #fff;
+  background-color: var(--paper-blue-900);
+}
+
+.paper-header.tall {
+  height: 240px;
+}
+
+.paper-header img {
+  height: 30px;
+  margin-right: 12px;
+}
+
+paper-button.blue {
+  color: var(--paper-light-blue-500);
+}
+paper-button.blue:hover {
+  background: var(--paper-light-blue-50);
+}
+paper-button.red {
+  color: var(--paper-red-900);
+  background: var(--paper-red-500);
+}
+paper-button.red:hover {
+  background: var(--paper-red-50);
+}
+paper-button.green {
+  color: var(--paper-green-900);
+  background: var(--paper-green-500);
+}
+paper-button.green:hover {
+  background: var(--paper-green-50);
+}
+paper-button.orange {
+  color: var(--paper-orange-500);
+  
+}
+paper-button.orange:hover {
+  background: var(--paper-orange-50);
+}
+paper-button[raised].colorful {
+/*   background: #4285f4;*/
+   /*color: #fff;*/
+ }
+ 
+ section {
+   margin: 24px 0;
+ }
+ 
+ footer {
+   display: flex;
+   justify-content: center;
+ }
+ 
+ footer a {
+   text-decoration: none;
+   color: #9E9E9E;
+  }
+</style>
 </head>
-<body class="purple-theme" unresolved>
+<body>
 
-<core-header-panel mode="cover">
+<paper-dialog id="modal" with-backdrop>
+ <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
+ <div class="buttons">
+   <paper-button dialog-confirm>Tap me to close</paper-button>
+ </div>
+</paper-dialog>
+ 
+<paper-header-panel mode="cover" class="pink">
+  <div class="paper-header tall">
+    <!-- <span class="layout horizontal center"><img src="https://www.polymer-project.org/images/logos/p-logo.svg"><h1>Polymer material design elements</h1></span> -->
+  </div>
+  <div class="content cover">
 
-<core-toolbar class="tall">
-  <paper-icon-button icon="menu"></paper-icon-button>
-  <span flex>Material Design Playground</span>
-  <paper-icon-button icon="search"></paper-icon-button>
-  <paper-icon-button icon="more-vert"></paper-icon-button>
-  <paper-fab icon="favorite"></paper-fab>
-</core-toolbar>
+<paper-toolbar>
+  <paper-icon-button icon="menu" id="menu-btn"></paper-icon-button>
+  <paper-tooltip for="menu-btn">Refresh</paper-tooltip>
+  <span class="flex" style="font-size:25px;">Polymer material design element demos</span>
+  <paper-icon-button icon="refresh" id="refresh-btn"></paper-icon-button>
+  <paper-tooltip for="refresh-btn">Refresh</paper-tooltip>
+  <paper-icon-button icon="add" id="add-btn"></paper-icon-button>
+  <paper-tooltip for="add-btn">Add</paper-tooltip>
+  <paper-icon-button icon="search" id="search-btn"></paper-icon-button>
+  <paper-tooltip for="search-btn">Search</paper-tooltip>
+  <paper-icon-button icon="cloud-upload" id="upload-btn"></paper-icon-button>
+  <paper-tooltip for="upload-btn">Upload</paper-tooltip>
+</paper-toolbar>
 
-<main>
+<section class="layout horizontal center">
 
-  <x-card z="1">
-    <img src="images/beach.jpg">
-    <h2>Welcome to Polymer's Material Design playground demo, a whirlwind tour of all the new component goodness. Enjoy!</h2>
-  </x-card>
-  <x-card z="1">
-    <h3 class="heading">Basic components</h3>
-    <div>
-      <p><paper-button label="Simple button"></paper-button><paper-button label="Raised button" raisedButton></paper-button></p>
-      <p>
-        <paper-checkbox label="A checkbox"></paper-checkbox>
-        <paper-toggle-button></paper-toggle-button>
-      </p>
-      <paper-radio-group selected="small">
-        <paper-radio-button name="small" label="A radio button" toggles></paper-radio-button><br>
-        <paper-radio-button name="medium" label="Another radio button" toggles></paper-radio-button>
-      </paper-radio-group>
+  <paper-radio-group selected="y">
+    <paper-radio-button name="y">Yes</paper-radio-button><br>
+    <paper-radio-button name="m">Maybe</paper-radio-button><br>
+    <paper-radio-button name="n">No</paper-radio-button>
+  </paper-radio-group>
+  
+  <div class="layout vertical width">    
+    <paper-checkbox checked> True</paper-checkbox>
+    <paper-checkbox>False</paper-checkbox>
+  </div>
+  
+  <paper-material elevation="1" class="card layout horizontal center-center">
+    <paper-ripple style="color: #0f9d58"></paper-ripple>
+    <span>&lt;paper-material><paper-badge label="1"></paper-badge></span>
+  </paper-material>
+  <paper-material elevation="2" class="card layout horizontal center-center">
+    <paper-ripple style="color: #d23f31"></paper-ripple>
+    <span>&lt;paper-material><paper-badge label="2"></paper-badge></span>
+  </paper-material>
+  <paper-material elevation="3" class="card layout horizontal center-center">
+    <paper-ripple style="color: #4285f4;"></paper-ripple>
+    <span>&lt;paper-material><paper-badge label="3"></paper-badge></span>
+  </paper-material>
+  
+  <div>
+    <paper-menu  class="list" selected="0">
+      <paper-item>Inbox</paper-item>
+      <paper-item disabled>Starred</paper-item>
+      <paper-item>Sent mail</paper-item>
+      <!-- <paper-item>Drafts</paper-item> -->
+    </paper-menu>
+  </div>
+
+</section>
+
+<section class="layout horizontal center">
+
+  <div class="layout horizontal justified" style="width: 350px">
+    <div class="line layout vertical center">
+      <paper-toggle-button checked class="blue"></paper-toggle-button><span>Oxygen</span>
     </div>
-  </x-card>
-  <x-card z="1">
-    <h3 class="heading">Text fields and dialogs</h3>
-    <div>
-      <paper-input label="Type something..."></paper-input>
-      <paper-input floatingLabel label="Type only numbers... (floating)" validate="^[0-9]*$" error="Input is not a number!"></paper-input>
-      <paper-dialog heading="Heya" transition="paper-dialog-transition-center">
-        <p>Lorem ipsum dolor sit amet, doming noster at quo, nostrud lucilius rationibus ea duo. Vim no mucius dolores. No bonorum voluptatum vis, has iudicabit consectetuer ne. Nullam sensibus vim id, et quo graeci perpetua.</p>
-
-        <p>Id qui scripta laboramus dissentiet, verterem partiendo vim at. Stet dissentiet ut mei. Iriure facilis eloquentiam pro eu, nec an esse inciderint. In meliore abhorreant sea. Eros nostro ocurreret at nec. Cu per regione persecuti.</p>
-
-        <paper-button label="More Info..." dismissive></paper-button>
-        <paper-button label="Decline" affirmative></paper-button>
-        <paper-button label="Accept" affirmative default></paper-button>
-
-      </paper-dialog>
-      <paper-button label="Dialog" raisedButton
-                    onclick="toggleDialog('paper-dialog-transition-center')"></paper-button>
+    <div class="line layout vertical center">
+      <paper-toggle-button class="red"></paper-toggle-button><span>Carbon</span>
     </div>
-  </x-card>
-  <x-card z="1">
-    <h3 class="heading">Progress and sliders</h3>
-    <div>
-      <p><paper-slider value="80"></paper-slider></p>
-      <p><paper-slider pin value="20"></paper-slider></p>
-      <p><paper-slider pin snaps max="10" step="1" value="5"></paper-slider></p>
-      <p><paper-slider value="25" max="100" editable></paper-slider></p>
-      <p><paper-progress value="80"></paper-progress></p>
-      <p><paper-progress class="red" value="40" secondaryProgress="80"></paper-progress></p>
+    <div class="line layout vertical center">
+      <paper-toggle-button class="orange"></paper-toggle-button><span>Hydrogen</span>
     </div>
-  </x-card>
-  <x-card z="1">
-    <h3 class="heading">Tabs</h3>
-    <div>
-      <paper-tabs selected="1" noink>
-        <paper-tab>ONE</paper-tab>
-        <paper-tab>TWO</paper-tab>
-        <paper-tab>THREE</paper-tab>
-      </paper-tabs>
-      <br>
-      <paper-tabs selected="0">
-        <paper-tab>ONE</paper-tab>
-        <paper-tab>TWO</paper-tab>
-        <paper-tab>THREE</paper-tab>
-      </paper-tabs>
+    <div class="line layout vertical center">
+      <paper-toggle-button checked class="green"></paper-toggle-button><span>Nitrogen</span>
     </div>
-  </x-card>
-</main>
+  </div>
+  
+  <paper-tabs selected="0" style="margin: 0 32px">
+    <paper-tab>Paper tabs 1</paper-tab>
+    <paper-tab>Paper tabs 2</paper-tab>
+    <paper-tab>Paper tabs 3</paper-tab>
+    <paper-tab>Paper tabs 4</paper-tab>
+  </paper-tabs>
+  
+  <paper-dropdown-menu label="Your fav pastry">
+    <paper-menu class="dropdown-content">
+      <paper-item>Croissant</paper-item>
+      <paper-item>Donut</paper-item>
+      <paper-item>Financier</paper-item>
+      <paper-item>Madeleine</paper-item>
+    </paper-menu>
+  </paper-dropdown-menu>
 
-<!--
-TODO: best way to change paper-shadow z on hover?
--->
-<x-card id="hovercard" z="0" zHover="3">
- <paper-icon-button icon="hardware:gamepad" fill></paper-icon-button>
-</x-card>
+</section>
 
-<paper-toggle-button id="themetoggle" onclick="toggleTheme('purple-theme')"></paper-toggle-button>
+<section  class="layout horizontal justified" style="margin: 32px 0">
+  <paper-progress clas="flex" value="800" min="100" max="1000"></paper-progress>
+  <paper-progress clas="flex" value="30" secondary-progress="70"></paper-progress>
+  <paper-progress clas="flex" indeterminate></paper-progress>
+</section>
 
-</core-header-panel>
+<section class="layout horizontal center">
+  <div style="margin-right: 24px">
+    <paper-spinner active></paper-spinner>
+   </div>
+   <paper-slider pin max="10" step="1" value="5"></paper-slider>
+   <paper-slider class="red" value="23" max="255"></paper-slider>
+   <paper-slider class="green" value="183" max="255"></paper-slider>
+   <paper-slider class="blue" value="0" max="255" secondary-progress="170"></paper-slider>
+</section>
+  
+<section class="layout horizontal center">
+  
+  <div style="margin-right: 24px">
+    <paper-button tabindex="0" raised>raised</paper-button>
+    <paper-button tabindex="0" raised disabled>disabled</paper-button>
+    <paper-button tabindex="0" raised class="green colorful"><iron-icon icon="check"></iron-icon>ok</paper-button>
+    <paper-button tabindex="0" raised class="red colorful"><iron-icon icon="clear"></iron-icon>cancel</paper-button>
+  </div>
+  
+  <div class="layout horizontal center" style="margin-right: 24px">
+    <paper-input placeholder="paper-input" label="My label"></paper-input>
+    <!-- <paper-input label="label"></paper-input> -->
+    <!-- <paper-input label="required input" auto-validate required error-message="input required!"></paper-input> -->
+  </div>
+  <!-- <paper-textarea placeholder="hint-text" label="label"></paper-textarea> -->
+  
+  <div class="layout horizontal center" style="margin-right: 24px">
+    <paper-fab class="red" focused icon="favorite"></paper-fab>
+    <paper-fab class="blue" icon="add"></paper-fab>
+    <paper-fab class="green" icon="mail" mini></paper-fab>
+  </div>
+  
+  <paper-button onclick="openDialog()" class="orange colorful" raised>Dialog</paper-button>
+  
+</section>
+
+  <footer><a href="https://github.com/ebidel/material-playground">View on github</a><footer>
+
+  </div>
+</paper-header-panel>
+
+<paper-toast text="Helpful paper-toast!"><paper-toast>
 
 <script>
-  function toggleTheme(theme) {
-    var mode = 'standard';
+var toast = document.querySelector('paper-toast');
+toast.show();
+setInterval(function() {
+  toast.show();
+}, 6000)
 
-    if (document.body.classList.contains(theme)) {
-      mode = 'waterfall-tall';
-    } else {
-      mode = 'cover';
-      document.querySelector('core-toolbar').classList.add('tall');
-    }
+function openDialog() {
+  var dialog = document.querySelector('paper-dialog');
+  dialog.open(); 
+}
 
-    document.body.classList.toggle(theme, !document.body.classList.contains(theme));
-
-    document.querySelector('core-header-panel').mode = mode;
-    document.querySelector('paper-fab').classList.toggle('mini');
-  }
-
-  function toggleDialog(transition) {
-    var dialog = document.querySelector('paper-dialog[transition=' + transition + ']');
-    dialog.toggle();
-  }
-</script>
-<script>
+// Analytics
 (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
-
  ga('create', 'UA-43475701-1', 'ebidel.github.io');
  ga('send', 'pageview');
 </script>
+</body>
 </body>
 </html>
