@@ -9,5 +9,5 @@
 In the checkout directory, run:
 
     bower install
-    serve -p 8080
+    python -m SimpleHTTPServer
 
