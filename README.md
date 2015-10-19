@@ -4,10 +4,17 @@
 
 ![Polymer material design playground](https://raw.githubusercontent.com/ebidel/material-playground/master/images/screenshot.png)
 
-### Run
+### Setup
 
-In the checkout directory, run:
+    npm install; bower install
 
-    bower install
+### Run / Dev
+
+To update `vulcanized.html`, run:
+
+    ./build.sh
+
+To server, in the checkout directory run the server of our choice:
+
     python -m SimpleHTTPServer
 
