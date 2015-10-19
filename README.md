@@ -1,10 +1,20 @@
-Polymer material design elements showcase
-==========================
+## Polymer material design  showcase
 
-Polymer material design playground: https://ebidel.github.io/material-playground/
+[Polymer material design playground](https://ebidel.github.io/material-playground/) showcases [Polymer](https://www.polymer-project.org/1.0/)'s [paper elements](https://elements.polymer-project.org/browse?package=paper-elements).
 
-In the checkout directory, run:
+![Polymer material design playground](https://raw.githubusercontent.com/ebidel/material-playground/master/images/screenshot.png)
 
-    bower install
-    serve -p 8080
+### Setup
+
+    npm install; bower install
+
+### Run / Dev
+
+To update `vulcanized.html`, run:
+
+    ./build.sh
+
+To server, in the checkout directory run the server of our choice:
+
+    python -m SimpleHTTPServer
 

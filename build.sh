@@ -14,4 +14,5 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-vulcanize --inline-scripts --inline-css elements.html > vulcanized.html
+vulcanize --inline-scripts --inline-css --strip-comments elements.html | \
+crisper --html vulcanized.html --js vulcanized.js

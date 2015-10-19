@@ -1,10 +1,10 @@
 {
   "name": "paper",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "authors": [
     "Eric Bidelman <ebidel@gmail.com>"
   ],
-  "license": "MIT",
+  "license": "Apache2",
   "ignore": [
     "**/.*",
     "node_modules",
@@ -13,6 +13,6 @@
     "tests"
   ],
   "dependencies": {
-    "paper-elements": "PolymerElements/paper-elements#^1.0.0"
+    "paper-elements": "PolymerElements/paper-elements#^1.0.5"
   }
 }
