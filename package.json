@@ -1,0 +1,24 @@
+{
+  "name": "material-playground",
+  "private": true,
+  "version": "0.0.1",
+  "description": "Polymer material design playground showcases Polymer paper elements",
+  "main": "index.html",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ebidel/material-playground"
+  },
+  "author": "Eric Bidelman <ebidel@>",
+  "license": "Apache2",
+  "bugs": {
+    "url": "https://github.com/ebidel/material-playground/issues"
+  },
+  "homepage": "https://ebidel.github.io/material-playground/",
+  "devDependencies": {
+    "crisper": "^1.1.0",
+    "vulcanize": "^1.13.1"
+  }
+}

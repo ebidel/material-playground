@@ -2,7 +2,7 @@
 <html>
 <head>
   <title>Polymer material design elements demos</title>
-  <script src="bower_components/webcomponentsjs/webcomponents-lite.min.js"></script>
+  <script src="bower_components/webcomponentsjs/webcomponents-lite.min.js" async></script>
   <link rel="import" href="vulcanized.html">
 <style is="custom-style">
 html, body {
@@ -122,7 +122,7 @@ paper-progress {
 /*  margin-left: 12px;*/
   margin-top: 10px;
 }
-    
+
 paper-menu {
   width: 100px;
 }
@@ -130,7 +130,7 @@ paper-menu {
 paper-toolbar {
   background-color: var(--paper-pink-a200);
 }
-      
+
 paper-header-panel {
   height: 100%;
   @apply(--shadow-elevation-2dp);
@@ -146,7 +146,7 @@ paper-header-panel .content {
 /*  height: 100%;*/
   padding: 24px;
 }
-  
+
 .paper-header {
   padding: 30px;
   color: #fff;
@@ -184,7 +184,7 @@ paper-button.green:hover {
 }
 paper-button.orange {
   color: var(--paper-orange-500);
-  
+
 }
 paper-button.orange:hover {
   background: var(--paper-orange-50);
@@ -193,16 +193,16 @@ paper-button[raised].colorful {
 /*   background: #4285f4;*/
    /*color: #fff;*/
  }
- 
+
  section {
    margin: 24px 0;
  }
- 
+
  footer {
    display: flex;
    justify-content: center;
  }
- 
+
  footer a {
    text-decoration: none;
    color: #9E9E9E;
@@ -211,13 +211,14 @@ paper-button[raised].colorful {
 </head>
 <body>
 
-<paper-dialog id="modal" with-backdrop>
+<paper-dialog id="modal" entry-animation="scale-up-animation"
+              exit-animation="scale-down-animation" with-backdrop>
  <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
  <div class="buttons">
    <paper-button dialog-confirm>Tap me to close</paper-button>
  </div>
 </paper-dialog>
- 
+
 <paper-header-panel mode="cover" class="pink">
   <div class="paper-header tall">
     <!-- <span class="layout horizontal center"><img src="https://www.polymer-project.org/images/logos/p-logo.svg"><h1>Polymer material design elements</h1></span> -->
@@ -245,12 +246,12 @@ paper-button[raised].colorful {
     <paper-radio-button name="m">Maybe</paper-radio-button><br>
     <paper-radio-button name="n">No</paper-radio-button>
   </paper-radio-group>
-  
-  <div class="layout vertical width">    
+
+  <div class="layout vertical width">
     <paper-checkbox checked> True</paper-checkbox>
     <paper-checkbox>False</paper-checkbox>
   </div>
-  
+
   <paper-material elevation="1" class="card layout horizontal center-center">
     <paper-ripple style="color: #0f9d58"></paper-ripple>
     <span>&lt;paper-material><paper-badge label="1"></paper-badge></span>
@@ -263,7 +264,7 @@ paper-button[raised].colorful {
     <paper-ripple style="color: #4285f4;"></paper-ripple>
     <span>&lt;paper-material><paper-badge label="3"></paper-badge></span>
   </paper-material>
-  
+
   <div>
     <paper-menu  class="list" selected="0">
       <paper-item>Inbox</paper-item>
@@ -272,6 +273,40 @@ paper-button[raised].colorful {
       <!-- <paper-item>Drafts</paper-item> -->
     </paper-menu>
   </div>
+
+<!--   <div>
+    <paper-listbox>
+      <paper-item>Inbox</paper-item>
+      <paper-item>Starred</paper-item>
+      <paper-item>Sent mail</paper-item>
+      <paper-item>Drafts</paper-item>
+    </paper-listbox>
+  </div> -->
+
+  <paper-menu>
+    <paper-submenu>
+      <paper-item class="menu-trigger">Submenu</paper-item>
+      <paper-menu class="menu-content">
+        <paper-item>Topic 1</paper-item>
+        <paper-item>Topic 2</paper-item>
+        <paper-item>Topic 3</paper-item>
+      </paper-menu>
+    </paper-submenu>
+    <paper-submenu>
+      <paper-item class="menu-trigger">Faves</paper-item>
+      <paper-menu class="menu-content">
+        <paper-item>Fave 1</paper-item>
+        <paper-item>Fave 2</paper-item>
+      </paper-menu>
+    </paper-submenu>
+    <paper-submenu disabled>
+      <paper-item class="menu-trigger">Disabled</paper-item>
+      <paper-menu class="menu-content">
+        <paper-item>Disabled 1</paper-item>
+        <paper-item>Disabled 2</paper-item>
+      </paper-menu>
+    </paper-submenu>
+  </paper-menu>
 
 </section>
 
@@ -291,14 +326,14 @@ paper-button[raised].colorful {
       <paper-toggle-button checked class="green"></paper-toggle-button><span>Nitrogen</span>
     </div>
   </div>
-  
+
   <paper-tabs selected="0" style="margin: 0 32px">
     <paper-tab>Paper tabs 1</paper-tab>
     <paper-tab>Paper tabs 2</paper-tab>
     <paper-tab>Paper tabs 3</paper-tab>
     <paper-tab>Paper tabs 4</paper-tab>
   </paper-tabs>
-  
+
   <paper-dropdown-menu label="Your fav pastry">
     <paper-menu class="dropdown-content">
       <paper-item>Croissant</paper-item>
@@ -325,31 +360,31 @@ paper-button[raised].colorful {
    <paper-slider class="green" value="183" max="255"></paper-slider>
    <paper-slider class="blue" value="0" max="255" secondary-progress="170"></paper-slider>
 </section>
-  
+
 <section class="layout horizontal center">
-  
+
   <div style="margin-right: 24px">
     <paper-button tabindex="0" raised>raised</paper-button>
     <paper-button tabindex="0" raised disabled>disabled</paper-button>
     <paper-button tabindex="0" raised class="green colorful"><iron-icon icon="check"></iron-icon>ok</paper-button>
     <paper-button tabindex="0" raised class="red colorful"><iron-icon icon="clear"></iron-icon>cancel</paper-button>
   </div>
-  
+
   <div class="layout horizontal center" style="margin-right: 24px">
     <paper-input placeholder="paper-input" label="My label"></paper-input>
     <!-- <paper-input label="label"></paper-input> -->
     <!-- <paper-input label="required input" auto-validate required error-message="input required!"></paper-input> -->
   </div>
   <!-- <paper-textarea placeholder="hint-text" label="label"></paper-textarea> -->
-  
+
   <div class="layout horizontal center" style="margin-right: 24px">
     <paper-fab class="red" focused icon="favorite"></paper-fab>
     <paper-fab class="blue" icon="add"></paper-fab>
     <paper-fab class="green" icon="mail" mini></paper-fab>
   </div>
-  
+
   <paper-button onclick="openDialog()" class="orange colorful" raised>Dialog</paper-button>
-  
+
 </section>
 
   <footer><a href="https://github.com/ebidel/material-playground">View on github</a><footer>
@@ -368,7 +403,7 @@ setInterval(function() {
 
 function openDialog() {
   var dialog = document.querySelector('paper-dialog');
-  dialog.open(); 
+  dialog.open();
 }
 
 // Analytics
