@@ -1,8 +1,0 @@
-{
-  "name": "highlightjs-element",
-  "private": true,
-  "dependencies": {
-    "polymer": "Polymer/polymer#master",
-    "highlightjs": "*"
-  }
-}
