@@ -5,7 +5,8 @@
   "description": "Polymer material design playground showcases Polymer paper elements",
   "main": "index.html",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "./node_modules/polybuild/bin/polybuild elements.html"
   },
   "repository": {
     "type": "git",
@@ -18,7 +19,6 @@
   },
   "homepage": "https://ebidel.github.io/material-playground/",
   "devDependencies": {
-    "crisper": "^1.1.0",
-    "vulcanize": "^1.13.1"
+    "polybuild": "^1.1.0"
   }
 }
