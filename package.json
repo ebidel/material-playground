@@ -6,7 +6,7 @@
   "main": "index.html",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "./node_modules/polybuild/bin/polybuild elements.html"
+    "build": "./node_modules/vulcanize/bin/vulcanize --inline-css --inline-scripts --strip-comments elements.html | crisper --html elements.build.html --js elements.build.js"
   },
   "repository": {
     "type": "git",
@@ -19,6 +19,8 @@
   },
   "homepage": "https://ebidel.github.io/material-playground/",
   "devDependencies": {
-    "polybuild": "^1.1.0"
+    "polybuild": "^1.1.0",
+    "vulcanize": "^1.14.8",
+    "crisper": "^2.0.2"
   }
 }
