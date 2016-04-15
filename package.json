@@ -18,7 +18,7 @@
   },
   "homepage": "https://ebidel.github.io/material-playground/",
   "devDependencies": {
-    "crisper": "^1.1.0",
-    "vulcanize": "^1.13.1"
+    "crisper": "^2.0.2",
+    "vulcanize": "^1.14.8"
   }
 }
