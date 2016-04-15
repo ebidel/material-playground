@@ -12,7 +12,7 @@
 
 To update `vulcanized.html`, run:
 
-    ./build.sh
+    npm run build
 
 To server, in the checkout directory run the server of our choice:
 
