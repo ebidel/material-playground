@@ -221,38 +221,6 @@ sa)}window.ShadyCSS.ApplyShim=T;}).call(this);
   Polymer.setRootPath = function(path) {
     Polymer.rootPath = path;
   }
-
-  /**
-   * A global callback used to sanitize any value before inserting it into the DOM. The callback signature is:
-   *
-   *     Polymer = {
-   *       sanitizeDOMValue: function(value, name, type, node) { ... }
-   *     }
-   *
-   * Where:
-   *
-   * `value` is the value to sanitize.
-   * `name` is the name of an attribute or property (for example, href).
-   * `type` indicates where the value is being inserted: one of property, attribute, or text.
-   * `node` is the node where the value is being inserted.
-   *
-   * @type {(function(*,string,string,Node):*)|undefined}
-   * @memberof Polymer
-   */
-  let sanitizeDOMValue = Polymer.sanitizeDOMValue;
-
-  // This is needed for tooling
-  Polymer.sanitizeDOMValue = sanitizeDOMValue;
-
-  /**
-   * Sets the global sanitizeDOMValue available via `Polymer.sanitizeDOMValue`.
-   *
-   * @memberof Polymer
-   * @param {(function(*,string,string,Node):*)|undefined} newSanitizeDOMValue the global sanitizeDOMValue callback
-   */
-  Polymer.setSanitizeDOMValue = function(newSanitizeDOMValue) {
-    Polymer.sanitizeDOMValue = newSanitizeDOMValue;
-  }
 })();
 (function() {
 
@@ -274,7 +242,7 @@ sa)}window.ShadyCSS.ApplyShim=T;}).call(this);
   /* eslint-disable valid-jsdoc */
   /**
    * Wraps an ES6 class expression mixin such that the mixin is only applied
-   * if it has not already been applied its base argument. Also memoizes mixin
+   * if it has not already been applied its base argument.  Also memoizes mixin
    * applications.
    *
    * @memberof Polymer
@@ -374,11 +342,10 @@ sa)}window.ShadyCSS.ApplyShim=T;}).call(this);
   const INCLUDE_ATTR = 'include';
 
   function importModule(moduleId) {
-    const PolymerDomModule = customElements.get('dom-module');
-    if (!PolymerDomModule) {
+    if (!Polymer.DomModule) {
       return null;
     }
-    return PolymerDomModule.import(moduleId);
+    return Polymer.DomModule.import(moduleId);
   }
 
   /** @typedef {{assetpath: string}} */
@@ -428,13 +395,14 @@ sa)}window.ShadyCSS.ApplyShim=T;}).call(this);
     cssFromModule(moduleId) {
       let m = importModule(moduleId);
       if (m && m._cssText === undefined) {
-        // module imports: <link rel="import" type="css">
-        let cssText = this._cssFromModuleImports(m);
+        let cssText = '';
         // include css from the first template in the module
         let t = m.querySelector('template');
         if (t) {
-          cssText += this.cssFromTemplate(t, /** @type {templateWithAssetPath} */(m).assetpath);
+          cssText += this.cssFromTemplate(t, /** @type {templateWithAssetPath }*/(m).assetpath);
         }
+        // module imports: <link rel="import" type="css">
+        cssText += this.cssFromModuleImports(moduleId);
         m._cssText = cssText || null;
       }
       if (!m) {
@@ -483,18 +451,12 @@ sa)}window.ShadyCSS.ApplyShim=T;}).call(this);
      * @this {StyleGather}
      */
     cssFromModuleImports(moduleId) {
-      let m = importModule(moduleId);
-      return m ? this._cssFromModuleImports(m) : '';
-    },
-    /**
-     * @memberof Polymer.StyleGather
-     * @this {StyleGather}
-     * @param {!HTMLElement} module dom-module element that could contain `<link rel="import" type="css">` styles
-     * @return {string} Concatenated CSS content from links in the dom-module
-     */
-    _cssFromModuleImports(module) {
       let cssText = '';
-      let p$ = module.querySelectorAll(MODULE_STYLE_LINK_SELECTOR);
+      let m = importModule(moduleId);
+      if (!m) {
+        return cssText;
+      }
+      let p$ = m.querySelectorAll(MODULE_STYLE_LINK_SELECTOR);
       for (let i=0; i < p$.length; i++) {
         let p = p$[i];
         if (p.import) {
@@ -546,7 +508,7 @@ sa)}window.ShadyCSS.ApplyShim=T;}).call(this);
    *
    * Then in code in some other location that cannot access the dom-module above
    *
-   *     let img = customElements.get('dom-module').import('foo', 'img');
+   *     let img = document.createElement('dom-module').import('foo', 'img');
    *
    * @customElement
    * @extends HTMLElement
@@ -1163,8 +1125,8 @@ sa)}window.ShadyCSS.ApplyShim=T;}).call(this);
    * the standard `static get observedAttributes()`, implement `_propertiesChanged`
    * on the class, and then call `MyClass.createPropertiesForAttributes()` once
    * on the class to generate property accessors for each observed attribute
-   * prior to instancing. Last, call `this._enableProperties()` in the element's
-   * `connectedCallback` to enable the accessors.
+   * prior to instancing.  Last, call `this._flushProperties()` once to enable
+   * the accessors.
    *
    * Any `observedAttributes` will automatically be
    * deserialized via `attributeChangedCallback` and set to the associated
@@ -1736,16 +1698,20 @@ sa)}window.ShadyCSS.ApplyShim=T;}).call(this);
   }
 
   function findTemplateNode(root, nodeInfo) {
-    let parent = root;
-    for (let i = 0; i < nodeInfo.length; i++) {
-      for (let n=parent.firstChild, j=0; n; n=n.nextSibling) {
-        if (nodeInfo[i] === j++) {
-          parent = n;
-          break;
+    // recursively ascend tree until we hit root
+    let parent = nodeInfo.parentInfo && findTemplateNode(root, nodeInfo.parentInfo);
+    // unwind the stack, returning the indexed node at each level
+    if (parent) {
+      // note: marginally faster than indexing via childNodes
+      // (http://jsperf.com/childnodes-lookup)
+      for (let n=parent.firstChild, i=0; n; n=n.nextSibling) {
+        if (nodeInfo.parentIndex === i++) {
+          return n;
         }
       }
+    } else {
+      return root;
     }
-    return parent;
   }
 
   // construct `$` map (from id annotations)
@@ -1891,7 +1857,7 @@ sa)}window.ShadyCSS.ApplyShim=T;}).call(this);
           templateInfo.stripWhiteSpace =
             (outerTemplateInfo && outerTemplateInfo.stripWhiteSpace) ||
             template.hasAttribute('strip-whitespace');
-          this._parseTemplateContent(template, templateInfo, {parentInfo: []});
+          this._parseTemplateContent(template, templateInfo, {parent: null});
         }
         return template._templateInfo;
       }
@@ -1968,9 +1934,7 @@ sa)}window.ShadyCSS.ApplyShim=T;}).call(this);
               continue;
             }
           }
-          let childInfo = {
-            parentInfo: nodeInfo.parentInfo.slice().concat(parentIndex)
-          };
+          let childInfo = { parentIndex, parentInfo: nodeInfo };
           if (this._parseTemplateNode(node, templateInfo, childInfo)) {
             childInfo.infoIndex = templateInfo.nodeInfoList.push(/** @type {!NodeInfo} */(childInfo)) - 1;
           }
@@ -2114,7 +2078,7 @@ sa)}window.ShadyCSS.ApplyShim=T;}).call(this);
         let nodes = dom.nodeList = new Array(nodeInfo.length);
         dom.$ = {};
         for (let i=0, l=nodeInfo.length, info; (i<l) && (info=nodeInfo[i]); i++) {
-          let node = nodes[i] = findTemplateNode(dom, info.parentInfo);
+          let node = nodes[i] = findTemplateNode(dom, info);
           applyIdToMap(this, dom.$, node, info);
           applyTemplateContent(this, node, info);
           applyEventListener(this, node, info);
@@ -2171,340 +2135,29 @@ sa)}window.ShadyCSS.ApplyShim=T;}).call(this);
   });
 
 })();
-(function () {
-'use strict'
-
-    /** @const {Object} */
-    const CaseMap = Polymer.CaseMap;
-
-    const effectFunctions = {};
-
-    const TYPES = {
-        COMPUTE: '__computeEffects',
-        REFLECT: '__reflectEffects',
-        NOTIFY: '__notifyEffects',
-        PROPAGATE: '__propagateEffects',
-        OBSERVE: '__observeEffects',
-        READ_ONLY: '__readOnly'
-    }
-    effectFunctions.TYPES = TYPES;
-
-    /**
-     * Transforms an "binding" effect value based on compound & negation
-     * effect metadata, as well as handling for special-case properties
-     *
-     * @param {Node} node Node the value will be set to
-     * @param {*} value Value to set
-     * @param {!Binding} binding Binding metadata
-     * @param {!BindingPart} part Binding part metadata
-     * @return {*} Transformed value to set
-     * @private
-     */
-    function computeBindingValue(node, value, binding, part) {
-        if (binding.isCompound) {
-            let storage = node.__dataCompoundStorage[binding.target];
-            storage[part.compoundIndex || 0] = value;
-            value = storage.join('');
-        }
-        if (binding.kind !== 'attribute') {
-            // Some browsers serialize `undefined` to `"undefined"`
-            if (binding.target === 'textContent' ||
-                (node.localName == 'input' && binding.target == 'value')) {
-                value = value == undefined ? '' : value;
-            }
-        }
-        return value;
-    }
-
-    /**
-     * Sets the value for an "binding" (binding) effect to a node,
-     * either as a property or attribute.
-     *
-     * @param {!PropertyEffectsType} inst The instance owning the binding effect
-     * @param {Node} node Target node for binding
-     * @param {!Binding} binding Binding metadata
-     * @param {!BindingPart} part Binding part metadata
-     * @param {*} value Value to set
-     * @private
-     */
-    function applyBindingValue(inst, node, binding, part, value) {
-        value = computeBindingValue(node, value, binding, part);
-        if (Polymer.sanitizeDOMValue) {
-            value = Polymer.sanitizeDOMValue(value, binding.target, binding.kind, node);
-        }
-        if (binding.kind == 'attribute') {
-            // Attribute binding
-            inst._valueToNodeAttribute(/** @type {Element} */(node), value, binding.target);
-        } else {
-            // Property binding
-            let prop = binding.target;
-            if (node.__dataHasAccessor && node.__dataHasAccessor[prop]) {
-                if (!node[TYPES.READ_ONLY] || !node[TYPES.READ_ONLY][prop]) {
-                    if (node._setPendingProperty(prop, value)) {
-                        inst._enqueueClient(node);
-                    }
-                }
-            } else {
-                inst._setUnmanagedPropertyToNode(node, prop, value);
-            }
-        }
-    }
-    /**
-     * Implements the "binding" (property/path binding) effect.
-     *
-     * Note that binding syntax is overridable via `_parseBindings` and
-     * `_evaluateBinding`.  This method will call `_evaluateBinding` for any
-     * non-literal parts returned from `_parseBindings`.  However,
-     * there is no support for _path_ bindings via custom binding parts,
-     * as this is specific to Polymer's path binding syntax.
-     *
-     * @param {!PropertyEffectsType} inst The instance the effect will be run on
-     * @param {string} path Name of property
-     * @param {Object} props Bag of current property changes
-     * @param {Object} oldProps Bag of previous values for changed properties
-     * @param {?} info Effect metadata
-     * @param {boolean} hasPaths True with `props` contains one or more paths
-     * @param {Array} nodeList List of nodes associated with `nodeInfoList` template
-     *   metadata
-     * @private
-     */
-    function runBindingEffect(inst, path, props, oldProps, info, hasPaths, nodeList) {
-        let node = nodeList[info.index];
-        let binding = info.binding;
-        let part = info.part;
-        // Subpath notification: transform path and set to client
-        // e.g.: foo="{{obj.sub}}", path: 'obj.sub.prop', set 'foo.prop'=obj.sub.prop
-        if (hasPaths && part.source && (path.length > part.source.length) &&
-            (!binding.kind || binding.kind === 'property') && !binding.isCompound &&
-            node.__dataHasAccessor && node.__dataHasAccessor[binding.target]) {
-            let value = props[path];
-            path = Polymer.Path.translate(part.source, binding.target, path);
-            if (node._setPendingPropertyOrPath(path, value, false, true)) {
-                inst._enqueueClient(node);
-            }
-        } else {
-            const evaluator = info.evaluator || inst.constructor;
-            let value = evaluator._evaluateBinding(inst, part, path, props, oldProps, hasPaths);
-            // Propagate value to child
-            applyBindingValue(inst, node, binding, part, value);
-        }
-    }
-    effectFunctions.runBindingEffect = runBindingEffect;
-
-    /**
-     * Implements the "observer" effect.
-     *
-     * Calls the method with `info.methodName` on the instance, passing the
-     * new and old values.
-     *
-     * @param {!PropertyEffectsType} inst The instance the effect will be run on
-     * @param {string} property Name of property
-     * @param {Object} props Bag of current property changes
-     * @param {Object} oldProps Bag of previous values for changed properties
-     * @param {?} info Effect metadata
-     * @private
-     */
-    function runObserverEffect(inst, property, props, oldProps, info) {
-        let fn = inst[info.methodName];
-        if (fn) {
-            fn.call(inst, inst.__data[property], oldProps[property]);
-        } else if (!info.dynamicFn) {
-            console.warn('observer method `' + info.methodName + '` not defined');
-        }
-    }
-    effectFunctions.runObserverEffect = runObserverEffect;
-
-    /**
-     * Dispatches {property}-changed events to indicate a property (or path)
-     * changed.
-     *
-     * @param {!PropertyEffectsType} inst The element from which to fire the event
-     * @param {string} eventName The name of the event to send ('{property}-changed')
-     * @param {*} value The value of the changed property
-     * @param {string | null | undefined} path If a sub-path of this property changed, the path
-     *   that changed (optional).
-     * @private
-     * @suppress {invalidCasts}
-     */
-    Polymer.dispatchNotifyEvent = function dispatchNotifyEvent(inst, eventName, value, path) {
-        let detail = {
-            value,
-            queueProperty: true
-        };
-        if (path) {
-            detail.path = path;
-        }
-        /** @type {!HTMLElement} */(inst).dispatchEvent(new CustomEvent(eventName, { detail }));
-    }
-
-    /**
-     * Implements the "notify" effect.
-     *
-     * Dispatches a non-bubbling event named `info.eventName` on the instance
-     * with a detail object containing the new `value`.
-     *
-     * @param {!PropertyEffectsType} inst The instance the effect will be run on
-     * @param {string} property Name of property
-     * @param {Object} props Bag of current property changes
-     * @param {Object} oldProps Bag of previous values for changed properties
-     * @param {?} info Effect metadata
-     * @param {boolean} hasPaths True with `props` contains one or more paths
-     * @private
-     */
-    function runNotifyEffect(inst, property, props, oldProps, info, hasPaths) {
-        let rootProperty = hasPaths ? Polymer.Path.root(property) : property;
-        let path = rootProperty != property ? property : null;
-        let value = path ? Polymer.Path.get(inst, path) : inst.__data[property];
-        if (path && value === undefined) {
-            value = props[property];  // specifically for .splices
-        }
-        const eventName = info.eventName || (info.eventName = CaseMap.camelToDashCase(rootProperty) + '-changed');
-        Polymer.dispatchNotifyEvent(inst, eventName, value, path);
-    }
-    effectFunctions.runNotifyEffect = runNotifyEffect;
-
-    /**
-     * Implements the "reflect" effect.
-     *
-     * Sets the attribute named `info.attrName` to the given property value.
-     *
-     * @param {!PropertyEffectsType} inst The instance the effect will be run on
-     * @param {string} property Name of property
-     * @param {Object} props Bag of current property changes
-     * @param {Object} oldProps Bag of previous values for changed properties
-     * @param {?} info Effect metadata
-     * @private
-     */
-    function runReflectEffect(inst, property, props, oldProps, info) {
-        let value = inst.__data[property];
-        const attrName = info.attrName || (info.attrName = CaseMap.camelToDashCase(property))
-        if (Polymer.sanitizeDOMValue) {
-            value = Polymer.sanitizeDOMValue(value, attrName, 'attribute', /** @type {Node} */(inst));
-        }
-        inst._propertyToAttribute(property, attrName, value);
-    }
-    effectFunctions.runReflectEffect = runReflectEffect;
-
-    /**
-     * Gather the argument values for a method specified in the provided array
-     * of argument metadata.
-     *
-     * The `path` and `value` arguments are used to fill in wildcard descriptor
-     * when the method is being called as a result of a path notification.
-     *
-     * @param {Object} data Instance data storage object to read properties from
-     * @param {!Array<!MethodArg>} args Array of argument metadata
-     * @param {string} path Property/path name that triggered the method effect
-     * @param {Object} props Bag of current property changes
-     * @return {Array<*>} Array of argument values
-     * @private
-     */
-    function marshalArgs(data, args, path, props) {
-        let values = [];
-        for (let i = 0, l = args.length; i < l; i++) {
-            let arg = args[i];
-            let name = arg.name || arg.rootProperty;
-            let v;
-            if (arg.literal) {
-                v = arg.value;
-            } else {
-                if (arg.structured) {
-                    v = Polymer.Path.get(data, name);
-                    // when data is not stored e.g. `splices`
-                    if (v === undefined) {
-                        v = props[name];
-                    }
-                } else {
-                    v = data[name];
-                }
-            }
-            if (arg.wildcard) {
-                // Only send the actual path changed info if the change that
-                // caused the observer to run matched the wildcard
-                let baseChanged = (name.indexOf(path + '.') === 0);
-                let matches = (path.indexOf(name) === 0 && !baseChanged);
-                values[i] = {
-                    path: matches ? path : name,
-                    value: matches ? props[path] : v,
-                    base: v
-                };
-            } else {
-                values[i] = v;
-            }
-        }
-        return values;
-    }
-
-    /**
-     * Calls a method with arguments marshaled from properties on the instance
-     * based on the method signature contained in the effect metadata.
-     *
-     * Multi-property observers, computed properties, and inline computing
-     * functions call this function to invoke the method, then use the return
-     * value accordingly.
-     *
-     * @param {!PropertyEffectsType} inst The instance the effect will be run on
-     * @param {string} property Name of property
-     * @param {Object} props Bag of current property changes
-     * @param {Object} oldProps Bag of previous values for changed properties
-     * @param {?} info Effect metadata
-     * @return {*} Returns the return value from the method invocation
-     * @private
-     */
-    function runMethodEffect(inst, property, props, oldProps, info) {
-        // Instances can optionally have a _methodHost which allows redirecting where
-        // to find methods. Currently used by `templatize`.
-        let context = inst._methodHost || inst;
-        let fn = context[info.methodName];
-        if (!info.args && info.cacheName) {
-            info.args = inst.__observerArgCache[info.cacheName];
-        }
-        if (fn) {
-            let args = marshalArgs(inst.__data, info.args, property, props);
-            return fn.apply(context, args);
-        } else if (!info.dynamicFn) {
-            console.warn('method `' + info.methodName + '` not defined');
-        }
-    }
-    effectFunctions.runMethodEffect = runMethodEffect;
-
-    /**
-     * Implements the "computed property" effect by running the method with the
-     * values of the arguments specified in the `info` object and setting the
-     * return value to the computed property specified.
-     *
-     * @param {!PropertyEffectsType} inst The instance the effect will be run on
-     * @param {string} property Name of property
-     * @param {Object} props Bag of current property changes
-     * @param {Object} oldProps Bag of previous values for changed properties
-     * @param {?} info Effect metadata
-     * @private
-     */
-    function runComputedEffect(inst, property, props, oldProps, info) {
-        let result = runMethodEffect(inst, property, props, oldProps, info);
-        let computedProp = info.methodInfo;
-        if (inst.__dataHasAccessor && inst.__dataHasAccessor[computedProp]) {
-            inst._setPendingProperty(computedProp, result, true);
-        } else {
-            inst[computedProp] = result;
-        }
-    }
-    effectFunctions.runComputedEffect = runComputedEffect;
-
-    Polymer.EFFECT_FUNCTIONS = effectFunctions;
-})();
 (function() {
 
   'use strict';
 
   /** @const {Object} */
   const CaseMap = Polymer.CaseMap;
-  const EFFECT_FUNCTIONS = Polymer.EFFECT_FUNCTIONS;
-  const TYPES = EFFECT_FUNCTIONS.TYPES;
 
   // Monotonically increasing unique ID used for de-duping effects triggered
   // from multiple properties in the same turn
   let dedupeId = 0;
+
+  /**
+   * Property effect types; effects are stored on the prototype using these keys
+   * @enum {string}
+   */
+  const TYPES = {
+    COMPUTE: '__computeEffects',
+    REFLECT: '__reflectEffects',
+    NOTIFY: '__notifyEffects',
+    PROPAGATE: '__propagateEffects',
+    OBSERVE: '__observeEffects',
+    READ_ONLY: '__readOnly'
+  }
 
   /**
    * @typedef {{
@@ -2577,16 +2230,15 @@ sa)}window.ShadyCSS.ApplyShim=T;}).call(this);
    * @param {Object=} oldProps Bag of previous values for changed properties
    * @param {boolean=} hasPaths True with `props` contains one or more paths
    * @param {*=} extraArgs Additional metadata to pass to effect function
-   * @param {Function} func Default function if an effect has no function
    * @return {boolean} True if an effect ran for this property
    * @private
    */
-  function runEffects(inst, effects, props, oldProps, hasPaths, extraArgs, func) {
+  function runEffects(inst, effects, props, oldProps, hasPaths, extraArgs) {
     if (effects) {
       let ran = false;
       let id = dedupeId++;
       for (let prop in props) {
-        if (runEffectsForProperty(inst, effects, id, prop, props, oldProps, hasPaths, extraArgs, func)) {
+        if (runEffectsForProperty(inst, effects, id, prop, props, oldProps, hasPaths, extraArgs)) {
           ran = true;
         }
       }
@@ -2606,24 +2258,21 @@ sa)}window.ShadyCSS.ApplyShim=T;}).call(this);
    * @param {*} oldProps Old properties
    * @param {boolean=} hasPaths True with `props` contains one or more paths
    * @param {*=} extraArgs Additional metadata to pass to effect function
-   * @param {Function} func Default function if an effect has no function
    * @return {boolean} True if an effect ran for this property
    * @private
    */
-  function runEffectsForProperty(inst, effects, dedupeId, prop, props, oldProps, hasPaths, extraArgs, func) {
+  function runEffectsForProperty(inst, effects, dedupeId, prop, props, oldProps, hasPaths, extraArgs) {
     let ran = false;
     let rootProperty = hasPaths ? Polymer.Path.root(prop) : prop;
     let fxs = effects[rootProperty];
     if (fxs) {
       for (let i=0, l=fxs.length, fx; (i<l) && (fx=fxs[i]); i++) {
         if ((!fx.info || fx.info.lastRun !== dedupeId) &&
-            (!hasPaths || pathMatchesTrigger(prop, fx.trigger, rootProperty))) {
-          if (!fx.info) {
-            fx.info = {};
+            (!hasPaths || pathMatchesTrigger(prop, fx.trigger))) {
+          if (fx.info) {
+            fx.info.lastRun = dedupeId;
           }
-          fx.info.lastRun = dedupeId;
-          const fn = fx.fn || func;
-          fn(inst, prop, props, oldProps, fx.info, hasPaths, extraArgs);
+          fx.fn(inst, prop, props, oldProps, fx.info, hasPaths, extraArgs);
           ran = true;
         }
       }
@@ -2647,12 +2296,11 @@ sa)}window.ShadyCSS.ApplyShim=T;}).call(this);
    *
    * @param {string} path Path or property that changed
    * @param {DataTrigger} trigger Descriptor
-   * @param {string} rootProperty Root of the property that changed
    * @return {boolean} Whether the path matched the trigger
    */
-  function pathMatchesTrigger(path, trigger, rootProperty) {
+  function pathMatchesTrigger(path, trigger) {
     if (trigger) {
-      let triggerPath = trigger.name || (trigger.name = rootProperty);
+      let triggerPath = trigger.name;
       return (triggerPath == path) ||
         (trigger.structured && Polymer.Path.isAncestor(triggerPath, path)) ||
         (trigger.wildcard && Polymer.Path.isDescendant(triggerPath, path));
@@ -2661,6 +2309,28 @@ sa)}window.ShadyCSS.ApplyShim=T;}).call(this);
     }
   }
 
+  /**
+   * Implements the "observer" effect.
+   *
+   * Calls the method with `info.methodName` on the instance, passing the
+   * new and old values.
+   *
+   * @param {!PropertyEffectsType} inst The instance the effect will be run on
+   * @param {string} property Name of property
+   * @param {Object} props Bag of current property changes
+   * @param {Object} oldProps Bag of previous values for changed properties
+   * @param {?} info Effect metadata
+   * @private
+   */
+  function runObserverEffect(inst, property, props, oldProps, info) {
+    let fn = inst[info.methodName];
+    let changedProp = info.property;
+    if (fn) {
+      fn.call(inst, inst.__data[changedProp], oldProps[changedProp]);
+    } else if (!info.dynamicFn) {
+      console.warn('observer method `' + info.methodName + '` not defined');
+    }
+  }
 
   /**
    * Runs "notify" effects for a set of changed properties.
@@ -2687,7 +2357,7 @@ sa)}window.ShadyCSS.ApplyShim=T;}).call(this);
     // Try normal notify effects; if none, fall back to try path notification
     for (let prop in notifyProps) {
       if (notifyProps[prop]) {
-        if (fxs && runEffectsForProperty(inst, fxs, id, prop, props, oldProps, hasPaths, undefined, EFFECT_FUNCTIONS.runNotifyEffect)) {
+        if (fxs && runEffectsForProperty(inst, fxs, id, prop, props, oldProps, hasPaths)) {
           notified = true;
         } else if (hasPaths && notifyPath(inst, prop, props)) {
           notified = true;
@@ -2717,10 +2387,57 @@ sa)}window.ShadyCSS.ApplyShim=T;}).call(this);
     let rootProperty = Polymer.Path.root(path);
     if (rootProperty !== path) {
       let eventName = Polymer.CaseMap.camelToDashCase(rootProperty) + '-changed';
-      Polymer.dispatchNotifyEvent(inst, eventName, props[path], path);
+      dispatchNotifyEvent(inst, eventName, props[path], path);
       return true;
     }
     return false;
+  }
+
+  /**
+   * Dispatches {property}-changed events to indicate a property (or path)
+   * changed.
+   *
+   * @param {!PropertyEffectsType} inst The element from which to fire the event
+   * @param {string} eventName The name of the event to send ('{property}-changed')
+   * @param {*} value The value of the changed property
+   * @param {string | null | undefined} path If a sub-path of this property changed, the path
+   *   that changed (optional).
+   * @private
+   * @suppress {invalidCasts}
+   */
+  function dispatchNotifyEvent(inst, eventName, value, path) {
+    let detail = {
+      value: value,
+      queueProperty: true
+    };
+    if (path) {
+      detail.path = path;
+    }
+    /** @type {!HTMLElement} */(inst).dispatchEvent(new CustomEvent(eventName, { detail }));
+  }
+
+  /**
+   * Implements the "notify" effect.
+   *
+   * Dispatches a non-bubbling event named `info.eventName` on the instance
+   * with a detail object containing the new `value`.
+   *
+   * @param {!PropertyEffectsType} inst The instance the effect will be run on
+   * @param {string} property Name of property
+   * @param {Object} props Bag of current property changes
+   * @param {Object} oldProps Bag of previous values for changed properties
+   * @param {?} info Effect metadata
+   * @param {boolean} hasPaths True with `props` contains one or more paths
+   * @private
+   */
+  function runNotifyEffect(inst, property, props, oldProps, info, hasPaths) {
+    let rootProperty = hasPaths ? Polymer.Path.root(property) : property;
+    let path = rootProperty != property ? property : null;
+    let value = path ? Polymer.Path.get(inst, path) : inst.__data[property];
+    if (path && value === undefined) {
+      value = props[property];  // specifically for .splices
+    }
+    dispatchNotifyEvent(inst, info.eventName, value, path);
   }
 
   /**
@@ -2759,6 +2476,26 @@ sa)}window.ShadyCSS.ApplyShim=T;}).call(this);
   }
 
   /**
+   * Implements the "reflect" effect.
+   *
+   * Sets the attribute named `info.attrName` to the given property value.
+   *
+   * @param {!PropertyEffectsType} inst The instance the effect will be run on
+   * @param {string} property Name of property
+   * @param {Object} props Bag of current property changes
+   * @param {Object} oldProps Bag of previous values for changed properties
+   * @param {?} info Effect metadata
+   * @private
+   */
+  function runReflectEffect(inst, property, props, oldProps, info) {
+    let value = inst.__data[property];
+    if (Polymer.sanitizeDOMValue) {
+      value = Polymer.sanitizeDOMValue(value, info.attrName, 'attribute', /** @type {Node} */(inst));
+    }
+    inst._propertyToAttribute(property, info.attrName, value);
+  }
+
+  /**
    * Runs "computed" effects for a set of changed properties.
    *
    * This method differs from the generic `runEffects` method in that it
@@ -2778,12 +2515,34 @@ sa)}window.ShadyCSS.ApplyShim=T;}).call(this);
     let computeEffects = inst[TYPES.COMPUTE];
     if (computeEffects) {
       let inputProps = changedProps;
-      while (runEffects(inst, computeEffects, inputProps, oldProps, hasPaths, undefined, EFFECT_FUNCTIONS.runComputedEffect)) {
+      while (runEffects(inst, computeEffects, inputProps, oldProps, hasPaths)) {
         Object.assign(oldProps, inst.__dataOld);
         Object.assign(changedProps, inst.__dataPending);
         inputProps = inst.__dataPending;
         inst.__dataPending = null;
       }
+    }
+  }
+
+  /**
+   * Implements the "computed property" effect by running the method with the
+   * values of the arguments specified in the `info` object and setting the
+   * return value to the computed property specified.
+   *
+   * @param {!PropertyEffectsType} inst The instance the effect will be run on
+   * @param {string} property Name of property
+   * @param {Object} props Bag of current property changes
+   * @param {Object} oldProps Bag of previous values for changed properties
+   * @param {?} info Effect metadata
+   * @private
+   */
+  function runComputedEffect(inst, property, props, oldProps, info) {
+    let result = runMethodEffect(inst, property, props, oldProps, info);
+    let computedProp = info.methodInfo;
+    if (inst.__dataHasAccessor && inst.__dataHasAccessor[computedProp]) {
+      inst._setPendingProperty(computedProp, result, true);
+    } else {
+      inst[computedProp] = result;
     }
   }
 
@@ -2868,7 +2627,7 @@ sa)}window.ShadyCSS.ApplyShim=T;}).call(this);
         console.warn('Cannot set attribute ' + binding.target +
           ' because "-" is not a valid attribute starting character');
       } else {
-        let dependencies = part.dependencies || [part.source];
+        let dependencies = part.dependencies;
         let info = { index, binding, part, evaluator: constructor };
         for (let j=0; j<dependencies.length; j++) {
           let trigger = dependencies[j];
@@ -2876,13 +2635,114 @@ sa)}window.ShadyCSS.ApplyShim=T;}).call(this);
             trigger = parseArg(trigger);
             trigger.wildcard = true;
           }
-          const rootProperty = trigger.rootProperty || (trigger.rootProperty = Polymer.Path.root(trigger.name));
-          constructor._addTemplatePropertyEffect(templateInfo, rootProperty, {
+          constructor._addTemplatePropertyEffect(templateInfo, trigger.rootProperty, {
+            fn: runBindingEffect,
             info, trigger
           });
         }
       }
     }
+  }
+
+  /**
+   * Implements the "binding" (property/path binding) effect.
+   *
+   * Note that binding syntax is overridable via `_parseBindings` and
+   * `_evaluateBinding`.  This method will call `_evaluateBinding` for any
+   * non-literal parts returned from `_parseBindings`.  However,
+   * there is no support for _path_ bindings via custom binding parts,
+   * as this is specific to Polymer's path binding syntax.
+   *
+   * @param {!PropertyEffectsType} inst The instance the effect will be run on
+   * @param {string} path Name of property
+   * @param {Object} props Bag of current property changes
+   * @param {Object} oldProps Bag of previous values for changed properties
+   * @param {?} info Effect metadata
+   * @param {boolean} hasPaths True with `props` contains one or more paths
+   * @param {Array} nodeList List of nodes associated with `nodeInfoList` template
+   *   metadata
+   * @private
+   */
+  function runBindingEffect(inst, path, props, oldProps, info, hasPaths, nodeList) {
+    let node = nodeList[info.index];
+    let binding = info.binding;
+    let part = info.part;
+    // Subpath notification: transform path and set to client
+    // e.g.: foo="{{obj.sub}}", path: 'obj.sub.prop', set 'foo.prop'=obj.sub.prop
+    if (hasPaths && part.source && (path.length > part.source.length) &&
+        (binding.kind == 'property') && !binding.isCompound &&
+        node.__dataHasAccessor && node.__dataHasAccessor[binding.target]) {
+      let value = props[path];
+      path = Polymer.Path.translate(part.source, binding.target, path);
+      if (node._setPendingPropertyOrPath(path, value, false, true)) {
+        inst._enqueueClient(node);
+      }
+    } else {
+      let value = info.evaluator._evaluateBinding(inst, part, path, props, oldProps, hasPaths);
+      // Propagate value to child
+      applyBindingValue(inst, node, binding, part, value);
+    }
+  }
+
+  /**
+   * Sets the value for an "binding" (binding) effect to a node,
+   * either as a property or attribute.
+   *
+   * @param {!PropertyEffectsType} inst The instance owning the binding effect
+   * @param {Node} node Target node for binding
+   * @param {!Binding} binding Binding metadata
+   * @param {!BindingPart} part Binding part metadata
+   * @param {*} value Value to set
+   * @private
+   */
+  function applyBindingValue(inst, node, binding, part, value) {
+    value = computeBindingValue(node, value, binding, part);
+    if (Polymer.sanitizeDOMValue) {
+      value = Polymer.sanitizeDOMValue(value, binding.target, binding.kind, node);
+    }
+    if (binding.kind == 'attribute') {
+      // Attribute binding
+      inst._valueToNodeAttribute(/** @type {Element} */(node), value, binding.target);
+    } else {
+      // Property binding
+      let prop = binding.target;
+      if (node.__dataHasAccessor && node.__dataHasAccessor[prop]) {
+        if (!node[TYPES.READ_ONLY] || !node[TYPES.READ_ONLY][prop]) {
+          if (node._setPendingProperty(prop, value)) {
+            inst._enqueueClient(node);
+          }
+        }
+      } else  {
+        inst._setUnmanagedPropertyToNode(node, prop, value);
+      }
+    }
+  }
+
+  /**
+   * Transforms an "binding" effect value based on compound & negation
+   * effect metadata, as well as handling for special-case properties
+   *
+   * @param {Node} node Node the value will be set to
+   * @param {*} value Value to set
+   * @param {!Binding} binding Binding metadata
+   * @param {!BindingPart} part Binding part metadata
+   * @return {*} Transformed value to set
+   * @private
+   */
+  function computeBindingValue(node, value, binding, part) {
+    if (binding.isCompound) {
+      let storage = node.__dataCompoundStorage[binding.target];
+      storage[part.compoundIndex] = value;
+      value = storage.join('');
+    }
+    if (binding.kind !== 'attribute') {
+      // Some browsers serialize `undefined` to `"undefined"`
+      if (binding.target === 'textContent' ||
+          (node.localName == 'input' && binding.target == 'value')) {
+        value = value == undefined ? '' : value;
+      }
+    }
+    return value;
   }
 
   /**
@@ -2961,7 +2821,7 @@ sa)}window.ShadyCSS.ApplyShim=T;}).call(this);
       let target = binding.target;
       storage[target] = literals;
       // Configure properties with their literal parts
-      if (binding.literal && (!binding.kind || binding.kind === 'property')) {
+      if (binding.literal && binding.kind == 'property') {
         node[target] = binding.literal;
       }
     }
@@ -3007,27 +2867,50 @@ sa)}window.ShadyCSS.ApplyShim=T;}).call(this);
       (typeof dynamicFn !== 'object' || dynamicFn[sig.methodName]));
     let info = {
       methodName: sig.methodName,
+      args: sig.args,
       methodInfo,
       dynamicFn
     };
-    if (sig.cacheName) {
-      model.__observerArgCache = model.__observerArgCache || {};
-      model.__observerArgCache[sig.cacheName] = sig.args;
-      info.cacheName = sig.cacheName;
-    } else {
-      info.args = sig.args;
-    }
     for (let i=0, arg; (i<sig.args.length) && (arg=sig.args[i]); i++) {
       if (!arg.literal) {
         model._addPropertyEffect(arg.rootProperty, type, {
-          fn: effectFn, info, trigger: arg
+          fn: effectFn, info: info, trigger: arg
         });
       }
     }
     if (dynamicFn) {
       model._addPropertyEffect(sig.methodName, type, {
-        fn: effectFn, info
+        fn: effectFn, info: info
       });
+    }
+  }
+
+  /**
+   * Calls a method with arguments marshaled from properties on the instance
+   * based on the method signature contained in the effect metadata.
+   *
+   * Multi-property observers, computed properties, and inline computing
+   * functions call this function to invoke the method, then use the return
+   * value accordingly.
+   *
+   * @param {!PropertyEffectsType} inst The instance the effect will be run on
+   * @param {string} property Name of property
+   * @param {Object} props Bag of current property changes
+   * @param {Object} oldProps Bag of previous values for changed properties
+   * @param {?} info Effect metadata
+   * @return {*} Returns the return value from the method invocation
+   * @private
+   */
+  function runMethodEffect(inst, property, props, oldProps, info) {
+    // Instances can optionally have a _methodHost which allows redirecting where
+    // to find methods. Currently used by `templatize`.
+    let context = inst._methodHost || inst;
+    let fn = context[info.methodName];
+    if (fn) {
+      let args = marshalArgs(inst.__data, info.args, property, props);
+      return fn.apply(context, args);
+    } else if (!info.dynamicFn) {
+      console.warn('method `' + info.methodName + '` not defined');
     }
   }
 
@@ -3081,7 +2964,7 @@ sa)}window.ShadyCSS.ApplyShim=T;}).call(this);
     let m = expression.match(/([^\s]+?)\(([\s\S]*)\)/);
     if (m) {
       let methodName = m[1];
-      let sig = { methodName, static: true, args: emptyArray, cacheName: methodName };
+      let sig = { methodName, static: true, args: emptyArray };
       if (m[2].trim()) {
         // replace escaped commas with comma entity, split on un-escaped commas
         let args = m[2].replace(/\\,/g, '&comma;').split(',');
@@ -3107,14 +2990,10 @@ sa)}window.ShadyCSS.ApplyShim=T;}).call(this);
     sig.args = argList.map(function(rawArg) {
       let arg = parseArg(rawArg);
       if (!arg.literal) {
-        delete sig.static;
+        sig.static = false;
       }
-      sig.cacheName += arg.name || arg.rootProperty;
       return arg;
     }, this);
-    if (sig.args.length <= 1) {
-      delete sig.cacheName;
-    }
     return sig;
   }
 
@@ -3146,7 +3025,9 @@ sa)}window.ShadyCSS.ApplyShim=T;}).call(this);
       ;
     // basic argument descriptor
     let a = {
-      name: arg
+      name: arg,
+      value: '',
+      literal: false
     };
     // detect literal value (must be String or Number)
     let fc = arg[0];
@@ -3170,9 +3051,6 @@ sa)}window.ShadyCSS.ApplyShim=T;}).call(this);
     // if not literal, look for structured path
     if (!a.literal) {
       a.rootProperty = Polymer.Path.root(arg);
-      if (a.rootProperty === a.name) {
-        delete a.name;
-      }
       // detect structured path (has dots)
       a.structured = Polymer.Path.isPath(arg);
       if (a.structured) {
@@ -3183,6 +3061,56 @@ sa)}window.ShadyCSS.ApplyShim=T;}).call(this);
       }
     }
     return a;
+  }
+
+  /**
+   * Gather the argument values for a method specified in the provided array
+   * of argument metadata.
+   *
+   * The `path` and `value` arguments are used to fill in wildcard descriptor
+   * when the method is being called as a result of a path notification.
+   *
+   * @param {Object} data Instance data storage object to read properties from
+   * @param {!Array<!MethodArg>} args Array of argument metadata
+   * @param {string} path Property/path name that triggered the method effect
+   * @param {Object} props Bag of current property changes
+   * @return {Array<*>} Array of argument values
+   * @private
+   */
+  function marshalArgs(data, args, path, props) {
+    let values = [];
+    for (let i=0, l=args.length; i<l; i++) {
+      let arg = args[i];
+      let name = arg.name;
+      let v;
+      if (arg.literal) {
+        v = arg.value;
+      } else {
+        if (arg.structured) {
+          v = Polymer.Path.get(data, name);
+          // when data is not stored e.g. `splices`
+          if (v === undefined) {
+            v = props[name];
+          }
+        } else {
+          v = data[name];
+        }
+      }
+      if (arg.wildcard) {
+        // Only send the actual path changed info if the change that
+        // caused the observer to run matched the wildcard
+        let baseChanged = (name.indexOf(path + '.') === 0);
+        let matches = (path.indexOf(name) === 0 && !baseChanged);
+        values[i] = {
+          path: matches ? path : name,
+          value: matches ? props[path] : v,
+          base: v
+        };
+      } else {
+        values[i] = v;
+      }
+    }
+    return values;
   }
 
   // data api
@@ -3411,9 +3339,7 @@ sa)}window.ShadyCSS.ApplyShim=T;}).call(this);
         if (!effects) {
           effects = this[type][property] = [];
         }
-        if (effect) {
-          effects.push(effect);
-        }
+        effects.push(effect);
       }
 
       /**
@@ -3831,7 +3757,7 @@ sa)}window.ShadyCSS.ApplyShim=T;}).call(this);
         // Flush clients
         this._flushClients();
         // Reflect properties
-        runEffects(this, this[TYPES.REFLECT], changedProps, oldProps, hasPaths, undefined, EFFECT_FUNCTIONS.runReflectEffect);
+        runEffects(this, this[TYPES.REFLECT], changedProps, oldProps, hasPaths);
         // Observe properties
         runEffects(this, this[TYPES.OBSERVE], changedProps, oldProps, hasPaths);
         // Notify properties to host
@@ -3863,7 +3789,7 @@ sa)}window.ShadyCSS.ApplyShim=T;}).call(this);
         let templateInfo = this.__templateInfo;
         while (templateInfo) {
           runEffects(this, templateInfo.propertyEffects, changedProps, oldProps,
-            hasPaths, templateInfo.nodeList, EFFECT_FUNCTIONS.runBindingEffect);
+            hasPaths, templateInfo.nodeList);
           templateInfo = templateInfo.nextTemplateInfo;
         }
       }
@@ -3998,7 +3924,7 @@ sa)}window.ShadyCSS.ApplyShim=T;}).call(this);
        * This method notifies other paths to the same array that a
        * splice occurred to the array.
        *
-       * @param {string | !Array<string|number>} path Path to array.
+       * @param {string} path Path to array.
        * @param {...*} items Items to push onto array
        * @return {number} New length of the array.
        * @public
@@ -4184,13 +4110,13 @@ sa)}window.ShadyCSS.ApplyShim=T;}).call(this);
        * @protected
        */
       _createPropertyObserver(property, methodName, dynamicFn) {
-        let info = { methodName, dynamicFn: Boolean(dynamicFn) };
+        let info = { property, methodName, dynamicFn: Boolean(dynamicFn) };
         this._addPropertyEffect(property, TYPES.OBSERVE, {
-          fn: EFFECT_FUNCTIONS.runObserverEffect, info, trigger: {name: property}
+          fn: runObserverEffect, info, trigger: {name: property}
         });
         if (dynamicFn) {
           this._addPropertyEffect(methodName, TYPES.OBSERVE, {
-            fn: EFFECT_FUNCTIONS.runObserverEffect, info, trigger: {name: methodName}
+            fn: runObserverEffect, info, trigger: {name: methodName}
           });
         }
       }
@@ -4210,7 +4136,7 @@ sa)}window.ShadyCSS.ApplyShim=T;}).call(this);
         if (!sig) {
           throw new Error("Malformed observer expression '" + expression + "'");
         }
-        createMethodEffect(this, sig, TYPES.OBSERVE, EFFECT_FUNCTIONS.runMethodEffect, null, dynamicFn);
+        createMethodEffect(this, sig, TYPES.OBSERVE, runMethodEffect, null, dynamicFn);
       }
 
       /**
@@ -4223,10 +4149,10 @@ sa)}window.ShadyCSS.ApplyShim=T;}).call(this);
        */
       _createNotifyingProperty(property) {
         this._addPropertyEffect(property, TYPES.NOTIFY, {
-          fn: EFFECT_FUNCTIONS.runNotifyEffect,
+          fn: runNotifyEffect,
           info: {
             eventName: CaseMap.camelToDashCase(property) + '-changed',
-            property
+            property: property
           }
         });
       }
@@ -4240,15 +4166,15 @@ sa)}window.ShadyCSS.ApplyShim=T;}).call(this);
        * @protected
        */
       _createReflectedProperty(property) {
-        let attrName = CaseMap.camelToDashCase(property);
-        if (attrName[0] === '-') {
+        let attr = CaseMap.camelToDashCase(property);
+        if (attr[0] === '-') {
           console.warn('Property ' + property + ' cannot be reflected to attribute ' +
-            attrName + ' because "-" is not a valid starting attribute name. Use a lowercase first letter for the property thisead.');
+            attr + ' because "-" is not a valid starting attribute name. Use a lowercase first letter for the property thisead.');
         } else {
           this._addPropertyEffect(property, TYPES.REFLECT, {
-            fn: EFFECT_FUNCTIONS.runReflectEffect,
+            fn: runReflectEffect,
             info: {
-              attrName
+              attrName: attr
             }
           });
         }
@@ -4270,7 +4196,7 @@ sa)}window.ShadyCSS.ApplyShim=T;}).call(this);
         if (!sig) {
           throw new Error("Malformed computed expression '" + expression + "'");
         }
-        createMethodEffect(this, sig, TYPES.COMPUTE, undefined, property, dynamicFn);
+        createMethodEffect(this, sig, TYPES.COMPUTE, runComputedEffect, property, dynamicFn);
       }
 
       // -- static class methods ------------
@@ -4282,15 +4208,15 @@ sa)}window.ShadyCSS.ApplyShim=T;}).call(this);
        * roughly corresponds to a phase in effect processing.  The effect
        * metadata should be in the following form:
        *
-       *     {
-       *       fn: effectFunction, // Reference to function to call to perform effect
-       *       info: { ... }       // Effect metadata passed to function
-       *       trigger: {          // Optional triggering metadata; if not provided
-       *         name: string      // the property is treated as a wildcard
-       *         structured: boolean
-       *         wildcard: boolean
-       *       }
+       *   {
+       *     fn: effectFunction, // Reference to function to call to perform effect
+       *     info: { ... }       // Effect metadata passed to function
+       *     trigger: {          // Optional triggering metadata; if not provided
+       *       name: string      // the property is treated as a wildcard
+       *       structured: boolean
+       *       wildcard: boolean
        *     }
+       *   }
        *
        * Effects are called from `_propertiesChanged` in the following order by
        * type:
@@ -4303,7 +4229,7 @@ sa)}window.ShadyCSS.ApplyShim=T;}).call(this);
        *
        * Effect functions are called with the following signature:
        *
-       *     effectFunction(inst, path, props, oldProps, info, hasPaths)
+       *   effectFunction(inst, path, props, oldProps, info, hasPaths)
        *
        * @param {string} property Property that should trigger the effect
        * @param {string} type Effect type, from this.PROPERTY_EFFECT_TYPES
@@ -4528,7 +4454,7 @@ sa)}window.ShadyCSS.ApplyShim=T;}).call(this);
         // Flush properties into template nodes if already booted
         if (this.__dataReady) {
           runEffects(this, templateInfo.propertyEffects, this.__data, null,
-            false, templateInfo.nodeList, EFFECT_FUNCTIONS.runBindingEffect);
+            false, templateInfo.nodeList);
         }
         return dom;
       }
@@ -4795,7 +4721,7 @@ sa)}window.ShadyCSS.ApplyShim=T;}).call(this);
       static _evaluateBinding(inst, part, path, props, oldProps, hasPaths) {
         let value;
         if (part.signature) {
-          value = EFFECT_FUNCTIONS.runMethodEffect(inst, path, props, oldProps, part.signature);
+          value = runMethodEffect(inst, path, props, oldProps, part.signature);
         } else if (path != part.source) {
           value = Polymer.Path.get(inst, part.source);
         } else {
@@ -5277,8 +5203,8 @@ sa)}window.ShadyCSS.ApplyShim=T;}).call(this);
     function finalizeTemplate(proto, template, baseURI, is, ext) {
       // support `include="module-name"`
       let cssText =
-        Polymer.StyleGather.cssFromModuleImports(is) +
-        Polymer.StyleGather.cssFromTemplate(template, baseURI);
+        Polymer.StyleGather.cssFromTemplate(template, baseURI) +
+        Polymer.StyleGather.cssFromModuleImports(is);
       if (cssText) {
         let style = document.createElement('style');
         style.textContent = cssText;
@@ -6700,14 +6626,13 @@ sa)}window.ShadyCSS.ApplyShim=T;}).call(this);
     },
     /**
      * @this {GestureRecognizer}
-     * @param {Event | Touch} e
-     * @param {Event=} preventer
+     * @param {Event} e
+     * @param {Function} preventer
      */
     forward: function(e, preventer) {
       let dx = Math.abs(e.clientX - this.info.x);
       let dy = Math.abs(e.clientY - this.info.y);
-      // find original target from `preventer` for TouchEvents, or `e` for MouseEvents
-      let t = Gestures._findOriginalTarget(/** @type {Event} */(preventer || e));
+      let t = Gestures._findOriginalTarget(e);
       // dx,dy can be NaN if `click` has been simulated and there was no `down` for `start`
       if (isNaN(dx) || isNaN(dy) || (dx <= TAP_DISTANCE && dy <= TAP_DISTANCE) || isSyntheticClick(e)) {
         // prevent taps from being generated if an event has canceled them
@@ -10440,32 +10365,6 @@ sa)}window.ShadyCSS.ApplyShim=T;}).call(this);
         _targetFrameTime: {
           type: Number,
           computed: '__computeFrameTime(targetFramerate)'
-        },
-
-        /**
-         * When `restamp` is true, template instances are never reused with
-         * different items.  Instances mapping to current items are moved
-         * to their new location, new instances are created for any new
-         * items, and instances for removed items are discarded.  This mode is
-         * generally more expensive than `restamp: false` as it results in
-         * more instances to be created and discarded during updates and
-         * disconnection/reconnection churn.  By default, object identity is
-         * used for mapping instances to items.  Set `restampKey` to provide
-         * key based identity.
-         */
-        restamp: {
-          type: Boolean
-        },
-
-        /**
-         * When `restamp: true` is used, `restampKey` can be used to provide
-         * a path into the item object that serves as a unique key for the
-         * item, for purposes of mapping instances to items.  Instances for
-         * items with the same key will be reused, while all others will be
-         * either restamped or discarded.
-         */
-        restampKey: {
-          type: String
         }
 
       }
@@ -10480,6 +10379,7 @@ sa)}window.ShadyCSS.ApplyShim=T;}).call(this);
       super();
       this.__instances = [];
       this.__limit = Infinity;
+      this.__pool = [];
       this.__renderDebouncer = null;
       this.__itemsIdxToInstIdx = {};
       this.__chunkCount = null;
@@ -10495,9 +10395,8 @@ sa)}window.ShadyCSS.ApplyShim=T;}).call(this);
     disconnectedCallback() {
       super.disconnectedCallback();
       this.__isDetached = true;
-      let instances = this.__instances;
-      for (let i=0; i<instances.length; i++) {
-        this.__detachInstance(instances[i]);
+      for (let i=0; i<this.__instances.length; i++) {
+        this.__detachInstance(i);
       }
     }
 
@@ -10506,9 +10405,9 @@ sa)}window.ShadyCSS.ApplyShim=T;}).call(this);
       // only perform attachment if the element was previously detached.
       if (this.__isDetached) {
         this.__isDetached = false;
-        let instances = this.__instances;
-        for (let i=0; i<instances.length; i++) {
-          this.__attachInstance(instances[i]);
+        let parent = this.parentNode;
+        for (let i=0; i<this.__instances.length; i++) {
+          this.__attachInstance(i, parent);
         }
       }
     }
@@ -10698,35 +10597,13 @@ sa)}window.ShadyCSS.ApplyShim=T;}).call(this);
         // No template found yet
         return;
       }
-      let items = this.items || [];
-      let inst2items = new Array(items.length);
-      for (let i=0; i<items.length; i++) {
-        inst2items[i] = i;
-      }
-      // Apply user filter
-      if (this.__filterFn) {
-        inst2items = inst2items.filter((i, idx, array) =>
-          this.__filterFn(items[i], idx, array));
-      }
-      // Apply user sort
-      if (this.__sortFn) {
-        inst2items.sort((a, b) => this.__sortFn(items[a], items[b]));
-      }
-
-      // items->inst map kept for item path forwarding
-      const items2inst = this.__itemsIdxToInstIdx = {};
-      const instances = this.__instances;
-      const limit = Math.max(Math.min(inst2items.length, this.__limit), 0);
-      // Generate instances and assign items
-      if (this.restamp) {
-        this.__renderRestamp(items, instances, limit, inst2items, items2inst);
-      } else {
-        this.__renderRefresh(items, instances, limit, inst2items, items2inst);
-      }
-      // Remove any extra instances from previous state
-      while (this.__instances.length > limit) {
-        this.__detachAndRemoveInstanceAt(limit);
-      }
+      this.__applyFullRefresh();
+      // Reset the pool
+      // TODO(kschaaf): Reuse pool across turns and nested templates
+      // Now that objects/arrays are re-evaluated when set, we can safely
+      // reuse pooled instances across turns, however we still need to decide
+      // semantics regarding how long to hold, how many to hold, etc.
+      this.__pool.length = 0;
       // Set rendered item count
       this._setRenderedItemCount(this.__instances.length);
       // Notify users
@@ -10738,90 +10615,65 @@ sa)}window.ShadyCSS.ApplyShim=T;}).call(this);
       this.__tryRenderChunk();
     }
 
-    __renderRestamp(items, instances, limit, inst2items, items2inst) {
-      let keyPath = this.restampKey;
-      const instCache = new Map();
-      nextItem: for (let i=0; i<limit; i++) {
-        let itemIdx = inst2items[i];
-        let item = items[itemIdx];
-        let key = keyPath && Polymer.Path.get(item, keyPath) || item;
-        let inst, instItem;
-        while ((inst = instances[i])) {
-          instItem = inst[this.as];
-          let instKey = keyPath && Polymer.Path.get(instItem, keyPath) || instItem;
-          if (key === instKey) {
-            inst._setPendingProperty(this.as, item);
-            inst._setPendingProperty(this.indexAs, i);
-            inst._setPendingProperty(this.itemsIndexAs, itemIdx);
-            inst._flushProperties();
-            items2inst[itemIdx] = i;
-            continue nextItem;
-          }
-          let cache = instCache.get(instKey);
-          if (cache) {
-            cache.push(inst);
-          } else {
-            instCache.set(instKey, [inst]);
-          }
-          instances.splice(i, 1);
-        }
-        let cache = instCache.get(key);
-        if (cache && (inst = cache.shift())) {
-          this.__reuseInstance(inst, item, i, itemIdx);
-          if (!cache.length) {
-            instCache.delete(key);
-          }
-        } else {
-          this.__insertInstance(item, i, itemIdx);
-        }
-        items2inst[itemIdx] = i;
+    __applyFullRefresh() {
+      let items = this.items || [];
+      let isntIdxToItemsIdx = new Array(items.length);
+      for (let i=0; i<items.length; i++) {
+        isntIdxToItemsIdx[i] = i;
       }
-      instCache.forEach(cache => cache.forEach(inst => this.__detachInstance(inst)));
-    }
-
-    __renderRefresh(items, instances, limit, inst2items, items2inst) {
-      for (let i=0; i<limit; i++) {
-        let inst = instances[i];
-        let itemIdx = inst2items[i];
+      // Apply user filter
+      if (this.__filterFn) {
+        isntIdxToItemsIdx = isntIdxToItemsIdx.filter((i, idx, array) =>
+          this.__filterFn(items[i], idx, array));
+      }
+      // Apply user sort
+      if (this.__sortFn) {
+        isntIdxToItemsIdx.sort((a, b) => this.__sortFn(items[a], items[b]));
+      }
+      // items->inst map kept for item path forwarding
+      const itemsIdxToInstIdx = this.__itemsIdxToInstIdx = {};
+      let instIdx = 0;
+      // Generate instances and assign items
+      const limit = Math.min(isntIdxToItemsIdx.length, this.__limit);
+      for (; instIdx<limit; instIdx++) {
+        let inst = this.__instances[instIdx];
+        let itemIdx = isntIdxToItemsIdx[instIdx];
         let item = items[itemIdx];
-        if (inst) {
+        itemsIdxToInstIdx[itemIdx] = instIdx;
+        if (inst && instIdx < this.__limit) {
           inst._setPendingProperty(this.as, item);
-          inst._setPendingProperty(this.indexAs, i);
+          inst._setPendingProperty(this.indexAs, instIdx);
           inst._setPendingProperty(this.itemsIndexAs, itemIdx);
           inst._flushProperties();
         } else {
-          this.__insertInstance(item, i, itemIdx);
+          this.__insertInstance(item, instIdx, itemIdx);
         }
-        items2inst[itemIdx] = i;
+      }
+      // Remove any extra instances from previous state
+      for (let i=this.__instances.length-1; i>=instIdx; i--) {
+        this.__detachAndRemoveInstance(i);
       }
     }
 
-    __detachInstance(inst) {
+    __detachInstance(idx) {
+      let inst = this.__instances[idx];
       for (let i=0; i<inst.children.length; i++) {
         let el = inst.children[i];
         inst.root.appendChild(el);
       }
+      return inst;
     }
 
-    __reuseInstance(inst, item, idx, itemIdx) {
-      let beforeInst = this.__instances[idx];
-      let beforeNode = beforeInst ? beforeInst.children[0] : this;
-      for (let i=0; i<inst.children.length; i++) {
-        this.parentNode.insertBefore(inst.children[i], beforeNode);
+    __attachInstance(idx, parent) {
+      let inst = this.__instances[idx];
+      parent.insertBefore(inst.root, this);
+    }
+
+    __detachAndRemoveInstance(idx) {
+      let inst = this.__detachInstance(idx);
+      if (inst) {
+        this.__pool.push(inst);
       }
-      this.__instances.splice(idx, 0, inst);
-      inst._setPendingProperty(this.as, item);
-      inst._setPendingProperty(this.indexAs, idx);
-      inst._setPendingProperty(this.itemsIndexAs, itemIdx);
-      inst._flushProperties();
-    }
-
-    __attachInstance(inst) {
-      this.parentNode.insertBefore(inst.root, this);
-    }
-
-    __detachAndRemoveInstanceAt(idx) {
-      this.__detachInstance(this.__instances[idx]);
       this.__instances.splice(idx, 1);
     }
 
@@ -10834,11 +10686,21 @@ sa)}window.ShadyCSS.ApplyShim=T;}).call(this);
     }
 
     __insertInstance(item, instIdx, itemIdx) {
-      let inst = this.__stampInstance(item, instIdx, itemIdx);
-      let beforeRow = this.__instances[instIdx];
+      let inst = this.__pool.pop();
+      if (inst) {
+        // TODO(kschaaf): If the pool is shared across turns, hostProps
+        // need to be re-set to reused instances in addition to item
+        inst._setPendingProperty(this.as, item);
+        inst._setPendingProperty(this.indexAs, instIdx);
+        inst._setPendingProperty(this.itemsIndexAs, itemIdx);
+        inst._flushProperties();
+      } else {
+        inst = this.__stampInstance(item, instIdx, itemIdx);
+      }
+      let beforeRow = this.__instances[instIdx + 1];
       let beforeNode = beforeRow ? beforeRow.children[0] : this;
       this.parentNode.insertBefore(inst.root, beforeNode);
-      this.__instances.splice(instIdx, 0, inst);
+      this.__instances[instIdx] = inst;
       return inst;
     }
 
@@ -11622,44 +11484,17 @@ Object.defineProperties(t.prototype,{transformCallback:{get:function(){return r}
 
   /**
    * Custom element for defining styles in the main document that can take
-   * advantage of [shady DOM](https://github.com/webcomponents/shadycss) shims
-   * for style encapsulation, custom properties, and custom mixins.
+   * advantage of several special features of Polymer's styling system:
    *
-   * - Document styles defined in a `<custom-style>` are shimmed to ensure they
+   * - Document styles defined in a custom-style are shimmed to ensure they
    *   do not leak into local DOM when running on browsers without native
    *   Shadow DOM.
-   * - Custom properties can be defined in a `<custom-style>`. Use the `html` selector 
-   *   to define custom properties that apply to all custom elements.
-   * - Custom mixins can be defined in a `<custom-style>`, if you import the optional 
-   *   [apply shim](https://github.com/webcomponents/shadycss#about-applyshim)
-   *   (`shadycss/apply-shim.html`).
+   * - Custom properties used by Polymer's shim for cross-scope styling may
+   *   be defined in an custom-style. Use the :root selector to define custom
+   *   properties that apply to all custom elements.
    *
-   * To use:
-   * 
-   * - Import `custom-style.html`.
-   * - Place a `<custom-style>` element in the main document, wrapping an inline `<style>` tag that
-   *   contains the CSS rules you want to shim.
-   * 
-   * For example:
-   *
-   * ```
-   * <!-- import apply shim--only required if using mixins -->
-   * <link rel="import href="bower_components/shadycss/apply-shim.html">
-   * <!-- import custom-style element -->
-   * <link rel="import" href="bower_components/polymer/lib/elements/custom-style.html">
-   * ...
-   * <custom-style>
-   *   <style>
-   *     html {
-   *       --custom-color: blue;
-   *       --custom-mixin: {
-   *         font-weight: bold;
-   *         color: red;
-   *       };
-   *     }
-   *   </style>
-   * </custom-style>
-   * ```
+   * To use, simply wrap an inline `<style>` tag in the main document whose
+   * CSS uses these features with a `<custom-style>` element.
    *
    * @customElement
    * @extends HTMLElement
