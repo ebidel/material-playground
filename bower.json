@@ -13,6 +13,35 @@
     "tests"
   ],
   "dependencies": {
-    "paper-elements": "PolymerElements/paper-elements#^1.0.7"
+    "iron-icon": "polymerelements/iron-icon#^2.0.1",
+    "iron-icons": "polymerelements/iron-icons#^2.0.1",
+    "paper-fab": "polymerelements/paper-fab#^2.0.0",
+    "paper-tabs": "polymerelements/paper-tabs#^2.0.0",
+    "iron-flex-layout": "polymerelements/iron-flex-layout#^2.0.0",
+    "paper-toolbar": "polymerelements/paper-toolbar#^2.0.0",
+    "paper-button": "polymerelements/paper-button#^2.0.0",
+    "paper-icon-button": "polymerelements/paper-icon-button#^2.0.0",
+    "paper-dropdown-menu": "polymerelements/paper-dropdown-menu#^2.0.0",
+    "paper-spinner": "polymerelements/paper-spinner#^2.0.0",
+    "paper-progress": "polymerelements/paper-progress#^2.0.1",
+    "paper-checkbox": "polymerelements/paper-checkbox#^2.0.1",
+    "paper-input": "polymerelements/paper-input#^2.0.1",
+    "paper-slider": "polymerelements/paper-slider#^2.0.2",
+    "paper-material": "polymerelements/paper-material#^2.0.0",
+    "paper-radio-button": "polymerelements/paper-radio-button#^2.0.0",
+    "paper-radio-group": "polymerelements/paper-radio-group#^2.0.0",
+    "paper-toggle-button": "polymerelements/paper-toggle-button#^2.0.0",
+    "paper-toast": "polymerelements/paper-toast#^2.0.0",
+    "paper-listbox": "polymerelements/paper-listbox#^2.0.0",
+    "paper-item": "polymerelements/paper-item#^2.0.0",
+    "paper-styles": "polymerelements/paper-styles#^2.0.0",
+    "paper-header-panel": "polymerelements/paper-header-panel#^2.0.0",
+    "paper-dialog": "polymerelements/paper-dialog#^2.0.0",
+    "paper-tooltip": "polymerelements/paper-tooltip#^2.0.1",
+    "paper-badge": "polymerelements/paper-badge#^2.0.0",
+    "neon-animation": "polymerelements/neon-animation#^2.0.1",
+    "polymer": "polymer/polymer#^2.0.2",
+    "app-layout": "polymerelements/app-layout#^2.0.1",
+    "web-animations-js": "web-animations/web-animations-js#^2.3.1"
   }
 }

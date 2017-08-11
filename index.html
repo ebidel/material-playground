@@ -2,7 +2,9 @@
 <html>
 <head>
   <title>Polymer material design elements demos</title>
-  <script src="bower_components/webcomponentsjs/webcomponents-lite.min.js" async></script>
+  <script src="bower_components/webcomponentsjs/webcomponents-lite.js" async></script>
+  <script src="bower_components/web-animations-js/web-animations.min.js"></script>
+
   <link rel="import" href="elements.build.html">
 <style is="custom-style">
 html, body {
@@ -29,6 +31,8 @@ paper-material {
   width: 175px;
   height: 175px;
   margin-right: 24px;
+  margin-top: 24px;
+  display: inline-block;
 }
 
 paper-fab {
@@ -123,7 +127,7 @@ paper-progress {
   margin-top: 10px;
 }
 
-paper-menu {
+paper-listbox {
   width: 100px;
 }
 
@@ -133,7 +137,7 @@ paper-toolbar {
 
 paper-header-panel {
   height: 100%;
-  @apply(--shadow-elevation-2dp);
+  @apply --shadow-elevation-2dp;
 }
 
 paper-header-panel .cover {
@@ -141,7 +145,7 @@ paper-header-panel .cover {
 }
 
 paper-header-panel .content {
-  @apply(--shadow-elevation-2dp);
+  @apply --shadow-elevation-2dp;
   background: white;
 /*  height: 100%;*/
   padding: 24px;
@@ -198,14 +202,46 @@ paper-button[raised].colorful {
    margin: 24px 0;
  }
 
+ .horizontal {
+   display: flex;
+   justify-content: space-evenly;
+   flex-wrap: wrap;
+ }
+
+ .line {
+   flex: 1;
+ }
+
  footer {
    display: flex;
    justify-content: center;
  }
 
+ .flex {
+   flex: 1;
+ }
+
+ .content {
+   max-width: 1500px;
+   margin: 0 auto;
+ }
+
  footer a {
    text-decoration: none;
    color: #9E9E9E;
+  }
+
+  .cards {
+    max-width: 700px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .card {
+    position: relative;
+    align-items: center;
+    justify-content: center;
   }
 </style>
 </head>
@@ -219,26 +255,23 @@ paper-button[raised].colorful {
  </div>
 </paper-dialog>
 
-<paper-header-panel mode="cover" class="pink">
-  <div class="paper-header tall">
-    <!-- <span class="layout horizontal center"><img src="https://www.polymer-project.org/images/logos/p-logo.svg"><h1>Polymer material design elements</h1></span> -->
-  </div>
+<app-header-layout mode="cover" class="pink">
+  <app-header slot="header" class="paper-header">
+    <app-toolbar>
+      <paper-icon-button icon="menu" id="menu-btn"></paper-icon-button>
+      <paper-tooltip for="menu-btn">Refresh</paper-tooltip>
+      <span class="flex" style="font-size:25px;">Polymer material design element demos</span>
+      <paper-icon-button icon="refresh" id="refresh-btn"></paper-icon-button>
+      <paper-tooltip for="refresh-btn">Refresh</paper-tooltip>
+      <paper-icon-button icon="add" id="add-btn"></paper-icon-button>
+      <paper-tooltip for="add-btn">Add</paper-tooltip>
+      <paper-icon-button icon="search" id="search-btn"></paper-icon-button>
+      <paper-tooltip for="search-btn">Search</paper-tooltip>
+      <paper-icon-button icon="cloud-upload" id="upload-btn"></paper-icon-button>
+      <paper-tooltip for="upload-btn">Upload</paper-tooltip>
+    </app-toolbar>
+  </app-header>
   <div class="content cover">
-
-<paper-toolbar>
-  <paper-icon-button icon="menu" id="menu-btn"></paper-icon-button>
-  <paper-tooltip for="menu-btn">Refresh</paper-tooltip>
-  <span class="flex" style="font-size:25px;">Polymer material design element demos</span>
-  <paper-icon-button icon="refresh" id="refresh-btn"></paper-icon-button>
-  <paper-tooltip for="refresh-btn">Refresh</paper-tooltip>
-  <paper-icon-button icon="add" id="add-btn"></paper-icon-button>
-  <paper-tooltip for="add-btn">Add</paper-tooltip>
-  <paper-icon-button icon="search" id="search-btn"></paper-icon-button>
-  <paper-tooltip for="search-btn">Search</paper-tooltip>
-  <paper-icon-button icon="cloud-upload" id="upload-btn"></paper-icon-button>
-  <paper-tooltip for="upload-btn">Upload</paper-tooltip>
-</paper-toolbar>
-
 <section class="layout horizontal center">
 
   <paper-radio-group selected="y">
@@ -252,61 +285,53 @@ paper-button[raised].colorful {
     <paper-checkbox>False</paper-checkbox>
   </div>
 
-  <paper-material elevation="1" class="card layout horizontal center-center">
-    <paper-ripple style="color: #0f9d58"></paper-ripple>
-    <span>&lt;paper-material><paper-badge label="1"></paper-badge></span>
-  </paper-material>
-  <paper-material elevation="2" class="card layout horizontal center-center">
-    <paper-ripple style="color: #d23f31"></paper-ripple>
-    <span>&lt;paper-material><paper-badge label="2"></paper-badge></span>
-  </paper-material>
-  <paper-material elevation="3" class="card layout horizontal center-center">
-    <paper-ripple style="color: #4285f4;"></paper-ripple>
-    <span>&lt;paper-material><paper-badge label="3"></paper-badge></span>
-  </paper-material>
+  <div class="cards">
+    <paper-material elevation="1" class="card layout horizontal center-center">
+      <paper-ripple style="color: #0f9d58"></paper-ripple>
+      <span>&lt;paper-material><paper-badge label="1"></paper-badge></span>
+    </paper-material>
+    <paper-material elevation="2" class="card layout horizontal center-center">
+      <paper-ripple style="color: #d23f31"></paper-ripple>
+      <span>&lt;paper-material><paper-badge label="2"></paper-badge></span>
+    </paper-material>
+    <paper-material elevation="3" class="card layout horizontal center-center">
+      <paper-ripple style="color: #4285f4;"></paper-ripple>
+      <span>&lt;paper-material><paper-badge label="3"></paper-badge></span>
+    </paper-material>
+  </div>
 
   <div>
-    <paper-menu  class="list" selected="0">
+    <paper-listbox  class="list" selected="0">
       <paper-item>Inbox</paper-item>
       <paper-item disabled>Starred</paper-item>
       <paper-item>Sent mail</paper-item>
-      <!-- <paper-item>Drafts</paper-item> -->
-    </paper-menu>
+    </paper-listbox>
   </div>
 
-<!--   <div>
+  <!-- <paper-listbox>
     <paper-listbox>
-      <paper-item>Inbox</paper-item>
-      <paper-item>Starred</paper-item>
-      <paper-item>Sent mail</paper-item>
-      <paper-item>Drafts</paper-item>
-    </paper-listbox>
-  </div> -->
-
-  <paper-menu>
-    <paper-submenu>
       <paper-item class="menu-trigger">Submenu</paper-item>
-      <paper-menu class="menu-content">
+      <paper-listbox class="menu-content">
         <paper-item>Topic 1</paper-item>
         <paper-item>Topic 2</paper-item>
         <paper-item>Topic 3</paper-item>
-      </paper-menu>
-    </paper-submenu>
-    <paper-submenu>
+      </paper-listbox>
+    </paper-listbox>
+    <paper-listbox>
       <paper-item class="menu-trigger">Faves</paper-item>
-      <paper-menu class="menu-content">
+      <paper-listbox class="menu-content">
         <paper-item>Fave 1</paper-item>
         <paper-item>Fave 2</paper-item>
-      </paper-menu>
-    </paper-submenu>
-    <paper-submenu disabled>
+      </paper-listbox>
+    </paper-listbox>
+    <paper-listbox disabled>
       <paper-item class="menu-trigger">Disabled</paper-item>
-      <paper-menu class="menu-content">
+      <paper-listbox class="menu-content">
         <paper-item>Disabled 1</paper-item>
         <paper-item>Disabled 2</paper-item>
-      </paper-menu>
-    </paper-submenu>
-  </paper-menu>
+      </paper-listbox>
+    </paper-listbox>
+  </paper-listbox> -->
 
 </section>
 
@@ -335,12 +360,12 @@ paper-button[raised].colorful {
   </paper-tabs>
 
   <paper-dropdown-menu label="Your fav pastry">
-    <paper-menu class="dropdown-content">
+    <paper-listbox slot="dropdown-content">
       <paper-item>Croissant</paper-item>
       <paper-item>Donut</paper-item>
       <paper-item>Financier</paper-item>
       <paper-item>Madeleine</paper-item>
-    </paper-menu>
+    </paper-listbox>
   </paper-dropdown-menu>
 
 </section>
@@ -390,7 +415,7 @@ paper-button[raised].colorful {
   <footer><a href="https://github.com/ebidel/material-playground">View on github</a><footer>
 
   </div>
-</paper-header-panel>
+</app-header-layout>
 
 <paper-toast text="Helpful paper-toast!"><paper-toast>
 
