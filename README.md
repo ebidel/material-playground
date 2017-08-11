@@ -2,7 +2,7 @@
 
 [Polymer material design playground](https://ebidel.github.io/material-playground/) showcases [Polymer](https://www.polymer-project.org/1.0/)'s [paper elements](https://elements.polymer-project.org/browse?package=paper-elements).
 
-![Polymer material design playground](https://raw.githubusercontent.com/ebidel/material-playground/master/images/screenshot.png)
+![Polymer material design playground](https://user-images.githubusercontent.com/5948271/29234225-57bc4b48-7eaa-11e7-9c73-1a72fe20aa75.png)
 
 ### Setup
 
